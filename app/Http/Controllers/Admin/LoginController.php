@@ -26,14 +26,14 @@ class LoginController extends Controller
             'password' => $request->pwd, 
         ];
 
-        if (!$token = auth()->attempt($credentials)) {
+        if (!$token = Auth()->attempt($credentials)) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'User atau password tidak cocok!'
             ], 401);
         }
 
-        $user = auth()->user();
+        $user = Auth()->user();
         $role = AksesModel::where('role_id', $user->role_id)->get();
 
         return $this->respondWithToken($token, $user, $role);
@@ -81,7 +81,7 @@ class LoginController extends Controller
             'role' => $role
         ]);
     }
-// }
+}
 // <?php
   
 // namespace App\Http\Controllers;
