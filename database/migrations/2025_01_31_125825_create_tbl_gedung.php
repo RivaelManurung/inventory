@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('gudang_slug');
             $table->string('gudang_keterangan')->nullable();
             $table->timestamps();
+            
         });
     }
 
