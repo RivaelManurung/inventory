@@ -8,6 +8,8 @@ use App\Models\Admin\UserModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Exception;
 
 class LoginController extends Controller
 {
@@ -16,27 +18,61 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        $request->validate([
-            'user' => 'required',
-            'pwd' => 'required',
-        ]);
+        try {
+            // Validasi input
+            $request->validate([
+                'user' => 'required|string',
+                'pwd' => 'required|string|min:6',
+            ]);
 
-        $credentials = [
-            'user_nama' => $request->user,
-            'password' => $request->pwd, 
-        ];
+            // Cek apakah user ada di database
+            $user = UserModel::where('user_nama', $request->user)->first();
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User tidak ditemukan!'
+                ], 404);
+            }
 
-        if (!$token = Auth()->attempt($credentials)) {
+            // Cek apakah password cocok
+            if (!Hash::check($request->pwd, $user->user_password)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Password salah!'
+                ], 401);
+            }
+
+            // Autentikasi menggunakan JWT
+            $credentials = [
+                'user_nama' => $request->user,
+                'password' => $request->pwd,
+            ];
+
+            if (!$token = Auth::attempt($credentials)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User atau password tidak cocok!'
+                ], 401);
+            }
+
+            // Ambil role user
+            $role = AksesModel::where('role_id', $user->role_id)->get();
+
+            return $this->respondWithToken($token, $user, $role);
+
+        } catch (ValidationException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'User atau password tidak cocok!'
-            ], 401);
+                'message' => 'Validasi gagal!',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan di server!',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $user = Auth()->user();
-        $role = AksesModel::where('role_id', $user->role_id)->get();
-
-        return $this->respondWithToken($token, $user, $role);
     }
 
     /**
@@ -44,12 +80,19 @@ class LoginController extends Controller
      */
     public function logout()
     {
-        auth()->logout();
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Logout berhasil!'
-        ], 200);
+        try {
+            Auth::logout();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Logout berhasil!'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal logout!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -57,7 +100,22 @@ class LoginController extends Controller
      */
     public function me()
     {
-        return response()->json(auth()->user());
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'User tidak ditemukan!'
+                ], 404);
+            }
+            return response()->json($user);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -65,7 +123,15 @@ class LoginController extends Controller
      */
     public function refresh()
     {
-        return $this->respondWithToken(auth()->refresh(), auth()->user());
+        try {
+            return $this->respondWithToken(Auth::refresh(), Auth::user());
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal memperbarui token!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -76,111 +142,9 @@ class LoginController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60,
+            'expires_in' => Auth::factory()->getTTL() * 60,
             'user' => $user,
             'role' => $role
         ]);
     }
 }
-// <?php
-  
-// namespace App\Http\Controllers;
-  
-// use App\Http\Controllers\Controller;
-// use App\Models\User;
-// use Validator;
-  
-  
-// class AuthController extends Controller
-// {
- 
-//     /**
-//      * Register a User.
-//      *
-//      * @return \Illuminate\Http\JsonResponse
-//      */
-//     public function register() {
-//         $validator = Validator::make(request()->all(), [
-//             'name' => 'required',
-//             'email' => 'required|email|unique:users',
-//             'password' => 'required|confirmed|min:8',
-//         ]);
-  
-//         if($validator->fails()){
-//             return response()->json($validator->errors()->toJson(), 400);
-//         }
-  
-//         $user = new User;
-//         $user->name = request()->name;
-//         $user->email = request()->email;
-//         $user->password = bcrypt(request()->password);
-//         $user->save();
-  
-//         return response()->json($user, 201);
-//     }
-  
-  
-//     /**
-//      * Get a JWT via given credentials.
-//      *
-//      * @return \Illuminate\Http\JsonResponse
-//      */
-//     public function login()
-//     {
-//         $credentials = request(['email', 'password']);
-  
-//         if (! $token = auth()->attempt($credentials)) {
-//             return response()->json(['error' => 'Unauthorized'], 401);
-//         }
-  
-//         return $this->respondWithToken($token);
-//     }
-  
-//     /**
-//      * Get the authenticated User.
-//      *
-//      * @return \Illuminate\Http\JsonResponse
-//      */
-//     public function me()
-//     {
-//         return response()->json(auth()->user());
-//     }
-  
-//     /**
-//      * Log the user out (Invalidate the token).
-//      *
-//      * @return \Illuminate\Http\JsonResponse
-//      */
-//     public function logout()
-//     {
-//         auth()->logout();
-  
-//         return response()->json(['message' => 'Successfully logged out']);
-//     }
-  
-//     /**
-//      * Refresh a token.
-//      *
-//      * @return \Illuminate\Http\JsonResponse
-//      */
-//     public function refresh()
-//     {
-//         return $this->respondWithToken(auth()->refresh());
-//     }
-  
-//     /**
-//      * Get the token array structure.
-//      *
-//      * @param  string $token
-//      *
-//      * @return \Illuminate\Http\JsonResponse
-//      */
-//     protected function respondWithToken($token)
-//     {
-//         return response()->json([
-//             'access_token' => $token,
-//             'token_type' => 'bearer',
-//             'expires_in' => auth()->factory()->getTTL() * 60
-//         ]);
-//     }
-// }
