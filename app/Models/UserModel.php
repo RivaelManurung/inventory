@@ -18,4 +18,12 @@ class UserModel extends Model
         'user_password',
         'user_foto',
     ];
+    protected $hidden = [
+        'user_password',
+    ];
+
+    public function getAuthPassword()
+    {
+        return $this->user_password;
+    }
 }
