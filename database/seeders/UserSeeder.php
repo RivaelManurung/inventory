@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
                 'user_nama' => 'superadmin',
                 'user_email' => 'superadmin@gmail.com',
                 'user_foto' => 'undraw_profile.svg',
-                'user_password' => md5('12345678'),
+                'user_password' => Hash::make('12345678'),
                 'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
                 'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
             ],
@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
                 'user_nama' => 'admin',
                 'user_email' => 'admin@gmail.com',
                 'user_foto' => 'undraw_profile.svg',
-                'user_password' => md5('12345678'),
+                'user_password' => Hash::make('12345678'),
                 'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
                 'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
             ],
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
                 'user_nama' => 'operator',
                 'user_email' => 'operator@gmail.com',
                 'user_foto' => 'undraw_profile.svg',
-                'user_password' => md5('12345678'),
+                'user_password' => Hash::make('12345678'),
                 'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
                 'updated_at' => Carbon::now()->format('Y-m-d H:i:s')
             ],

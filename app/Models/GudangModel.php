@@ -5,14 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class RoleModel extends Model
+class GudangModel extends Model
 {
     use HasFactory;
-    protected $table = "tbl_role";
-    protected $primaryKey = 'role_id';
+    protected $table = "tbl_gudang";
+    protected $primaryKey = 'gudang_id';
     protected $fillable = [
-        'role_title',
-        'role_slug',
-        'role_desc'
+        'gudang_nama',
+        'gudang_slug',
+        'gudang_keterangan'
     ]; 
 }
