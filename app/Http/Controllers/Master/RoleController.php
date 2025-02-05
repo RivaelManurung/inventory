@@ -1,104 +1,154 @@
 <?php
 
-namespace App\Http\Controllers\Master;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
-use Spatie\Permission\Models\Role; // Menggunakan model Role dari Spatie
+use App\Http\Controllers\Admin\BaseController;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Exception;
-use App\Models\AksesModel;
 
-class RoleController extends Controller
+class RoleController extends BaseController
 {
-    // Menampilkan semua role
+    /**
+     * Menampilkan daftar semua role
+     */
     public function index()
     {
-        try {
-            $roles = Role::all(); // Mengambil semua role menggunakan model Role dari Spatie
-            return response()->json(['success' => true, 'data' => $roles], 200);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-        }
+        $roles = Role::with('permissions')->get();
+        return $this->sendResponse($roles, 'Roles retrieved successfully.');
     }
 
-    // Menambahkan role baru
+    /**
+     * Menyimpan role baru
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'desc' => 'nullable|string'
+            'name' => 'required|string|max:255|unique:roles,name',
+            'permissions' => 'array'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return $this->sendError('Validation failed', $validator->errors(), 400);
         }
 
-        try {
-            // Menggunakan slug otomatis untuk role
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->title)));
-            
-            // Membuat role baru menggunakan model Role dari Spatie
-            $role = Role::create([
-                'name' => $request->title,  // name adalah field yang digunakan oleh Spatie untuk role
-                'description' => $request->desc
-            ]);
+        $role = Role::create([
+            'name' => $request->name,
+        ]);
 
-            return response()->json(['success' => true, 'data' => $role], 201);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        if ($request->has('permissions')) {
+            $role->syncPermissions($request->permissions);
         }
+
+        return $this->sendResponse($role->load('permissions'), 'Role successfully created!');
     }
 
-    // Menampilkan role berdasarkan ID
+    /**
+     * Menampilkan role berdasarkan ID
+     */
     public function show($id)
     {
-        try {
-            $role = Role::findById($id); // Menggunakan method findById dari Spatie
-            return response()->json(['success' => true, 'data' => $role], 200);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Role not found'], 404);
+        $role = Role::with('permissions')->find($id);
+        
+        if (!$role) {
+            return $this->sendError('Role not found');
         }
+
+        return $this->sendResponse($role, 'Role retrieved successfully.');
     }
 
-    // Memperbarui role
+    /**
+     * Memperbarui role
+     */
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'desc' => 'nullable|string'
+            'name' => 'required|string|max:255|unique:roles,name,' . $id,
+            'permissions' => 'array'
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+            return $this->sendError('Validation failed', $validator->errors(), 400);
         }
 
-        try {
-            $role = Role::findById($id); // Menggunakan method findById dari Spatie
-            $role->update([
-                'name' => $request->title,
-                'description' => $request->desc
-            ]);
-
-            return response()->json(['success' => true, 'data' => $role], 200);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Role not found'], 404);
+        $role = Role::find($id);
+        
+        if (!$role) {
+            return $this->sendError('Role not found');
         }
+
+        $role->update([
+            'name' => $request->name,
+        ]);
+
+        if ($request->has('permissions')) {
+            $role->syncPermissions($request->permissions);
+        }
+
+        return $this->sendResponse($role->load('permissions'), 'Role successfully updated!');
     }
 
-    // Menghapus role
+    /**
+     * Menghapus role
+     */
     public function destroy($id)
     {
-        try {
-            $role = Role::findById($id); // Menggunakan method findById dari Spatie
-            $role->delete();
-
-            // Menghapus akses terkait role tersebut
-            AksesModel::where('role_id', $id)->delete();
-
-            return response()->json(['success' => true, 'message' => 'Role deleted successfully'], 200);
-        } catch (Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Role not found'], 404);
+        $role = Role::find($id);
+        
+        if (!$role) {
+            return $this->sendError('Role not found');
         }
+
+        $role->delete();
+
+        return $this->sendResponse([], 'Role successfully deleted!');
+    }
+
+    /**
+     * Mendapatkan semua permission yang tersedia
+     */
+    public function getAllPermissions()
+    {
+        $permissions = Permission::all();
+        return $this->sendResponse($permissions, 'Permissions retrieved successfully.');
+    }
+
+    /**
+     * Mendapatkan permission untuk role tertentu
+     */
+    public function getPermissions($id)
+    {
+        $role = Role::with('permissions')->find($id);
+        
+        if (!$role) {
+            return $this->sendError('Role not found');
+        }
+
+        return $this->sendResponse($role->permissions, 'Role permissions retrieved successfully.');
+    }
+
+    /**
+     * Mengatur permission untuk role tertentu
+     */
+    public function assignPermissions(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'permissions' => 'required|array'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->sendError('Validation failed', $validator->errors(), 400);
+        }
+
+        $role = Role::find($id);
+        
+        if (!$role) {
+            return $this->sendError('Role not found');
+        }
+
+        $role->syncPermissions($request->permissions);
+
+        return $this->sendResponse($role->load('permissions'), 'Permissions assigned successfully.');
     }
 }
