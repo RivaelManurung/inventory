@@ -17,10 +17,9 @@ Route::group([
     Route::post('/profile', [LoginController::class, 'profile'])->middleware('auth:api');
 });
 
-// Gudang routes with authentication
+// Gudang routes with authentication and role-based access
 Route::group([
-    'middleware' => ['api', 'auth:api'],
-    'prefix' => 'gudang'
+    'middleware' => ['api', 'auth:api', 'role:admin'] // Ensure the user has the 'admin' role
 ], function ($router) {
     Route::get('/', [GudangController::class, 'index']);
     Route::post('/', [GudangController::class, 'store']);
@@ -29,10 +28,9 @@ Route::group([
     Route::delete('/{id}', [GudangController::class, 'destroy']);
 });
 
-// Satuan routes with authentication
+// Satuan routes with authentication and role-based access
 Route::group([
-    'middleware' => ['api', 'auth:api'],
-    'prefix' => 'satuan'
+    'middleware' => ['api', 'auth:api', 'role:admin|manager'] // Allow 'admin' or 'manager' roles
 ], function ($router) {
     Route::get('/', [SatuanController::class, 'show']);
     Route::post('/', [SatuanController::class, 'store']);
@@ -40,10 +38,9 @@ Route::group([
     Route::delete('/{satuan}', [SatuanController::class, 'destroy']);
 });
 
-// Jenis Barang routes with authentication
+// Jenis Barang routes with authentication and permission-based access
 Route::group([
-    'middleware' => ['api', 'auth:api'],
-    'prefix' => 'jenisbarang'
+    'middleware' => ['api', 'auth:api', 'permission:create-jenisbarang'] // Ensure the user has the 'create-jenisbarang' permission
 ], function ($router) {
     Route::get('/', [JenisBarangController::class, 'show']);
     Route::post('/', [JenisBarangController::class, 'store']);
