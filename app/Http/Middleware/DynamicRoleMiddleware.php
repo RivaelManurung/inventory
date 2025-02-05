@@ -12,7 +12,7 @@ class DynamicRoleMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->check()) {
+        if (!\Illuminate\Support\Facades\Auth::check()) {
             throw UnauthorizedException::notLoggedIn();
         }
 

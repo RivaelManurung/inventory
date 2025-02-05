@@ -7,7 +7,8 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\GudangController;
 use App\Http\Controllers\Admin\SatuanController;
 use App\Http\Controllers\Admin\JenisBarangController;
-use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Master\RoleController;
+use App\Http\Controllers\Master\AksesController;
 
 // Authentication Routes
 Route::prefix('auth')->group(function () {
@@ -60,5 +61,12 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
         Route::post('/roles/{id}/permissions', 'assignPermissions')->name('roles.permissions.assign');
         Route::get('/roles/{id}/permissions', 'getPermissions')->name('roles.permissions.get');
         Route::get('/permissions', 'getAllPermissions')->name('permissions.all');
+    });
+    Route::controller(AksesController::class)->group(function () {
+        Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
+        Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role
+        Route::delete('/akses', 'removeAkses')->name('akses.remove'); // Hapus akses tertentu untuk role
+        Route::post('/akses/{role_id}/set-all', 'setAllAkses')->name('akses.set_all'); // Berikan semua akses ke role
+        Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
     });
 });

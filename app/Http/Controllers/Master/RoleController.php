@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Admin\BaseController;
 use Spatie\Permission\Models\Role;

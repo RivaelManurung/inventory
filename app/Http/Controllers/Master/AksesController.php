@@ -1,111 +1,110 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Master;
 
 use App\Http\Controllers\Controller;
-use App\Models\Admin\AksesModel;
-use App\Models\Admin\MenuModel;
-use App\Models\Admin\RoleModel;
-use App\Models\Admin\SubmenuModel;
+use App\Http\Controllers\Admin\BaseController;
+use App\Models\AksesModel;
+use App\Models\MenuModel;
+use App\Models\SubmenuModel;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
+use Spatie\Permission\Models\Role;
 
-class AksesController extends Controller
+class AksesController extends BaseController
 {
-    public function index($role): JsonResponse
+    public function getAksesByRole($role_id)
     {
-        $roleData = $role === 'role' ? null : RoleModel::where('role_id', $role)->first();
-        $menus = MenuModel::where('menu_type', '1')->orderBy('menu_sort', 'ASC')->get();
-        $submenus = MenuModel::where('menu_type', '2')->orderBy('menu_sort', 'ASC')->get();
-        
-        return response()->json([
-            'title' => 'Akses',
-            'role_id' => $role === 'role' ? null : $role,
-            'role' => RoleModel::latest()->get(),
-            'detail_role' => $roleData,
-            'menu' => $menus,
-            'submenu' => $submenus,
-        ]);
+        // Memeriksa apakah role ada
+        $role = Role::findById($role_id);
+        if (!$role) {
+            return $this->sendError('Role not found', [], 404); // Menambahkan kode 404
+        }
+
+        $akses = AksesModel::where('role_id', $role_id)->get();
+        if ($akses->isEmpty()) {
+            return $this->sendError('No access found for this role', [], 404); // Menambahkan error jika akses tidak ditemukan
+        }
+
+        return $this->sendResponse($akses, 'Access data retrieved successfully');
     }
 
-    public function addAkses(Request $request): JsonResponse
+    public function addAkses(Request $request)
     {
-        $validated = $request->validate([
-            'menu_id' => 'nullable|integer',
-            'submenu_id' => 'nullable|integer',
-            'othermenu_id' => 'nullable|integer',
-            'role_id' => 'required|integer',
-            'akses_type' => 'required|string',
-        ]);
-        
-        AksesModel::create($validated);
-        return response()->json(['message' => 'Akses berhasil ditambahkan'], 201);
-    }
-
-    public function removeAkses(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'menu_id' => 'nullable|integer',
-            'submenu_id' => 'nullable|integer',
-            'othermenu_id' => 'nullable|integer',
-            'role_id' => 'required|integer',
-            'akses_type' => 'required|string',
+        // Validasi data
+        $request->validate([
+            'role_id' => 'required|exists:roles,id',
+            'menu_id' => 'nullable|exists:tbl_menu,menu_id',
+            'submenu_id' => 'nullable|exists:tbl_submenu,submenu_id',
+            'akses_type' => 'required|string'
         ]);
 
-        AksesModel::where($validated)->delete();
-        return response()->json(['message' => 'Akses berhasil dihapus']);
+        // Menambahkan akses
+        try {
+            $akses = AksesModel::create($request->only(['role_id', 'menu_id', 'submenu_id', 'akses_type']));
+            return $this->sendResponse($akses, 'Access added successfully');
+        } catch (\Exception $e) {
+            return $this->sendError('Failed to add access', [$e->getMessage()], 500);
+        }
     }
 
-    public function setAllAkses($idrole): JsonResponse
+    public function removeAkses(Request $request)
     {
-        AksesModel::where('role_id', $idrole)->delete();
-        
+        // Validasi data
+        $request->validate([
+            'role_id' => 'required|exists:roles,id',
+            'menu_id' => 'nullable|exists:tbl_menu,menu_id',
+            'submenu_id' => 'nullable|exists:tbl_submenu,submenu_id',
+            'akses_type' => 'required|string'
+        ]);
+
+        // Menghapus akses
+        $deleted = AksesModel::where($request->only(['role_id', 'menu_id', 'submenu_id', 'akses_type']))->delete();
+
+        if ($deleted) {
+            return $this->sendResponse([], 'Access deleted successfully');
+        }
+
+        return $this->sendError('Access not found', [], 404); // Menambahkan kode 404
+    }
+
+    public function setAllAkses($role_id)
+    {
+        $role = Role::findById($role_id);
+        if (!$role) {
+            return $this->sendError('Role not found', [], 404);
+        }
+
+        AksesModel::where('role_id', $role_id)->delete();
         $data = [];
-        $menus = MenuModel::orderBy('menu_sort', 'ASC')->get();
-        foreach ($menus as $m) {
+
+        foreach (MenuModel::all() as $menu) {
             foreach (['view', 'create', 'update', 'delete'] as $type) {
-                $data[] = [
-                    'menu_id' => $m->menu_id,
-                    'role_id' => $idrole,
-                    'akses_type' => $type,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
+                $data[] = ['menu_id' => $menu->menu_id, 'role_id' => $role_id, 'akses_type' => $type, 'created_at' => now(), 'updated_at' => now()];
             }
         }
 
-        $submenus = SubmenuModel::orderBy('submenu_sort', 'ASC')->get();
-        foreach ($submenus as $sb) {
+        foreach (SubmenuModel::all() as $submenu) {
             foreach (['view', 'create', 'update', 'delete'] as $type) {
-                $data[] = [
-                    'submenu_id' => $sb->submenu_id,
-                    'role_id' => $idrole,
-                    'akses_type' => $type,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
+                $data[] = ['submenu_id' => $submenu->submenu_id, 'role_id' => $role_id, 'akses_type' => $type, 'created_at' => now(), 'updated_at' => now()];
             }
         }
-        
-        for ($i = 1; $i <= 6; $i++) {
-            foreach (['view', 'create', 'update', 'delete'] as $type) {
-                $data[] = [
-                    'othermenu_id' => $i,
-                    'role_id' => $idrole,
-                    'akses_type' => $type,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ];
-            }
+
+        // Memastikan akses berhasil diinsert
+        if (AksesModel::insert($data)) {
+            return $this->sendResponse([], 'All access set successfully');
+        } else {
+            return $this->sendError('Failed to set all access', [], 500); // Menambahkan error response jika insert gagal
         }
-        
-        AksesModel::insert($data);
-        return response()->json(['message' => 'Semua akses berhasil diatur']);
     }
 
-    public function unsetAllAkses($idrole): JsonResponse
+    public function unsetAllAkses($role_id)
     {
-        AksesModel::where('role_id', $idrole)->delete();
-        return response()->json(['message' => 'Semua akses berhasil dihapus']);
+        $deleted = AksesModel::where('role_id', $role_id)->delete();
+
+        if ($deleted) {
+            return $this->sendResponse([], 'All access removed successfully');
+        }
+
+        return $this->sendError('Failed to remove access', [], 500);
     }
 }

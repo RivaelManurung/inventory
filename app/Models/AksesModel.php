@@ -22,4 +22,8 @@ class AksesModel extends Model
     {
         return $this->belongsTo(Role::class, 'role_id', 'id'); // Menggunakan 'id' yang merupakan primary key di tabel roles
     }
+    public function menu()
+    {
+        return $this->belongsTo(MenuModel::class, 'menu_id', 'menu_id');
+    }
 }
