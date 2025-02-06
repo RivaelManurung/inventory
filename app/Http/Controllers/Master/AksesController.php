@@ -9,20 +9,31 @@ use App\Models\MenuModel;
 use App\Models\SubmenuModel;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
 
 class AksesController extends BaseController
 {
+    public function __construct()
+    {
+        // Middleware untuk memastikan hanya superadmin yang dapat mengakses
+        $this->middleware(function ($request, $next) {
+            if (!Auth::user() || !Auth::user()->hasRole('superadmin')) {
+                return $this->sendError('Unauthorized access', [], 403);
+            }
+            return $next($request);
+        });
+    }
+
     public function getAksesByRole($role_id)
     {
-        // Memeriksa apakah role ada
         $role = Role::findById($role_id);
         if (!$role) {
-            return $this->sendError('Role not found', [], 404); // Menambahkan kode 404
+            return $this->sendError('Role not found', [], 404);
         }
 
         $akses = AksesModel::where('role_id', $role_id)->get();
         if ($akses->isEmpty()) {
-            return $this->sendError('No access found for this role', [], 404); // Menambahkan error jika akses tidak ditemukan
+            return $this->sendError('No access found for this role', [], 404);
         }
 
         return $this->sendResponse($akses, 'Access data retrieved successfully');
@@ -30,7 +41,6 @@ class AksesController extends BaseController
 
     public function addAkses(Request $request)
     {
-        // Validasi data
         $request->validate([
             'role_id' => 'required|exists:roles,id',
             'menu_id' => 'nullable|exists:tbl_menu,menu_id',
@@ -38,7 +48,6 @@ class AksesController extends BaseController
             'akses_type' => 'required|string'
         ]);
 
-        // Menambahkan akses
         try {
             $akses = AksesModel::create($request->only(['role_id', 'menu_id', 'submenu_id', 'akses_type']));
             return $this->sendResponse($akses, 'Access added successfully');
@@ -49,7 +58,6 @@ class AksesController extends BaseController
 
     public function removeAkses(Request $request)
     {
-        // Validasi data
         $request->validate([
             'role_id' => 'required|exists:roles,id',
             'menu_id' => 'nullable|exists:tbl_menu,menu_id',
@@ -57,14 +65,13 @@ class AksesController extends BaseController
             'akses_type' => 'required|string'
         ]);
 
-        // Menghapus akses
         $deleted = AksesModel::where($request->only(['role_id', 'menu_id', 'submenu_id', 'akses_type']))->delete();
 
         if ($deleted) {
             return $this->sendResponse([], 'Access deleted successfully');
         }
 
-        return $this->sendError('Access not found', [], 404); // Menambahkan kode 404
+        return $this->sendError('Access not found', [], 404);
     }
 
     public function setAllAkses($role_id)
@@ -89,11 +96,10 @@ class AksesController extends BaseController
             }
         }
 
-        // Memastikan akses berhasil diinsert
         if (AksesModel::insert($data)) {
             return $this->sendResponse([], 'All access set successfully');
         } else {
-            return $this->sendError('Failed to set all access', [], 500); // Menambahkan error response jika insert gagal
+            return $this->sendError('Failed to set all access', [], 500);
         }
     }
 
