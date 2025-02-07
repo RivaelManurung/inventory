@@ -73,14 +73,51 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
     });
 
     // Akses routes
-    Route::middleware(['checkRoleUser:/akses,submenu'])->group(function () {
-        Route::controller(AksesController::class)->group(function () {
-            Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
-            Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role
-            Route::delete('/akses', 'removeAkses')->name('akses.remove'); // Hapus akses tertentu untuk role
-            Route::post('/akses/{role_id}/set-all', 'setAllAkses')->name('akses.set_all'); // Berikan semua akses ke role
-            Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
-        });
+    // Route::middleware(['checkRoleUser:/akses,submenu'])->group(function () {
+    //     Route::controller(AksesController::class)->group(function () {
+    //         Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
+    //         Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role
+    //         Route::delete('/akses', 'removeAkses')->name('akses.remove'); // Hapus akses tertentu untuk role
+    //         Route::post('/akses/{role_id}/set-all', 'setAllAkses')->name('akses.set_all'); // Berikan semua akses ke role
+    //         Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
+    //     });
+    // });
+    Route::middleware(['checkRoleUser:1,othermenu'])->group(function () {
+
+        // Route::middleware(['checkRoleUser:2,othermenu'])->group(function () {
+        //     // Menu
+        //     Route::resource('/admin/menu', \App\Http\Controllers\Master\MenuController::class);
+        //     Route::post('/admin/menu/hapus', [MenuController::class, 'hapus']);
+        //     Route::get('/admin/menu/sortup/{sort}', [MenuController::class, 'sortup']);
+        //     Route::get('/admin/menu/sortdown/{sort}', [MenuController::class, 'sortdown']);
+        // });
+
+        // Route::middleware(['checkRoleUser:3,othermenu'])->group(function () {
+        //     // Role
+        //     Route::resource('/admin/role', \App\Http\Controllers\Master\RoleController::class);
+        //     Route::get('/admin/role/show/', [RoleController::class, 'show'])->name('role.getrole');
+        //     Route::post('/admin/role/hapus', [RoleController::class, 'hapus']);
+        // });
+
+        // Route::middleware(['checkRoleUser:4,othermenu'])->group(function () {
+        //     // List User
+        //     Route::resource('/admin/user', \App\Http\Controllers\Master\UserController::class);
+        //     Route::get('/admin/user/show/', [UserController::class, 'show'])->name('user.getuser');
+        //     Route::post('/admin/user/hapus', [UserController::class, 'hapus']);
+        // });
+
+        Route::middleware(['checkRoleUser:5,othermenu'])->group(function () {
+            Route::controller(AksesController::class)->group(function () {
+                        Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
+                        Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role
+                        Route::delete('/akses', 'removeAkses')->name('akses.remove'); // Hapus akses tertentu untuk role
+                        Route::post('/akses/{role_id}/set-all', 'setAllAkses')->name('akses.set_all'); // Berikan semua akses ke role
+                        Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
+                    });
+        // Route::middleware(['checkRoleUser:6,othermenu'])->group(function () {
+        //     // Web
+        //     Route::resource('/admin/web', \App\Http\Controllers\Master\WebController::class);
+        // });
     });
 
 });
@@ -134,3 +171,4 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
 //         Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
 //     });
 // });
+});
