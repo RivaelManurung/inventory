@@ -26,4 +26,8 @@ class AksesModel extends Model
     {
         return $this->belongsTo(MenuModel::class, 'menu_id', 'menu_id');
     }
+    public function submenu()
+    {
+        return $this->belongsTo(SubmenuModel::class, 'submenu_id', 'submenu_id');
+    }
 }
