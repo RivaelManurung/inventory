@@ -106,7 +106,7 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
         //     Route::post('/admin/user/hapus', [UserController::class, 'hapus']);
         // });
 
-        Route::middleware(['checkRoleUser:1,othermenu'])->group(function () {
+        Route::middleware(['checkRoleUser:5,othermenu'])->group(function () {
             Route::controller(AksesController::class)->group(function () {
                         Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
                         Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role

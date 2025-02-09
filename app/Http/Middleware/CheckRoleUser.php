@@ -5,32 +5,35 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use App\Models\AksesModel;
 
 class CheckRoleUser
 {
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next, $menu)
+    public function handle(Request $request, Closure $next, $menu, $type)
     {
-        $user = Auth::user(); // Ambil user yang sedang login
+        $user = Auth::user();
 
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
+        dd(auth()->check(), auth()->user());
+        $hasAccess = false;
 
-        // Ambil role_id dari user
-        $roleId = $user->role_id; // Sesuaikan dengan field yang ada di tabel users
+        if ($type == 'othermenu') {
+            $hasAccess = AksesModel::where(['role_id' => $user->role_id, 'othermenu_id' => $menu, 'akses_type' => 'view'])->exists();
+        } elseif ($type == 'menu') {
+            $hasAccess = AksesModel::leftJoin('tbl_menu', 'tbl_menu.menu_id', '=', 'tbl_akses.menu_id')
+                ->where(['tbl_akses.role_id' => $user->role_id, 'tbl_menu.menu_redirect' => $menu, 'tbl_akses.akses_type' => 'view'])
+                ->exists();
+        } elseif ($type == 'submenu') {
+            $hasAccess = AksesModel::leftJoin('tbl_submenu', 'tbl_submenu.submenu_id', '=', 'tbl_akses.submenu_id')
+                ->where(['tbl_akses.role_id' => $user->role_id, 'tbl_submenu.submenu_redirect' => $menu, 'tbl_akses.akses_type' => 'view'])
+                ->exists();
+        }
 
-        // Cek akses dari tbl_akses
-        $hasAccess = DB::table('tbl_akses')
-            ->where('role_id', $roleId)
-            ->where('menu_id', $menu)
-            ->where('akses_type', 1)
-            ->exists();
-
-        // Jika tidak memiliki akses, return Forbidden
         if (!$hasAccess) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
