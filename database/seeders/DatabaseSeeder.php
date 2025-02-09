@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             RolePermissionSeeder::class,
             MenuTableSeeder::class,
-            SubMenuTableSeeder::class
+            SubMenuTableSeeder::class,
+            AksesTableSeeder::class
         ]);
     }
 }

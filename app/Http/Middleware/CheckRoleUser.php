@@ -19,7 +19,7 @@ class CheckRoleUser
         if (!$user) {
             return response()->json(['message' => 'Unauthorized'], 401);
         }
-        dd(auth()->check(), auth()->user());
+        // dd(auth()->check(), auth()->user());
         $hasAccess = false;
 
         if ($type == 'othermenu') {
