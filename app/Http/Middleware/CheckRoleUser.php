@@ -35,7 +35,7 @@ class CheckRoleUser
             ->exists();
         
         // dd($hasAccess);
-                        
+        
         } elseif ($type == 'menu') {
             $hasAccess = AksesModel::leftJoin('tbl_menu', 'tbl_menu.menu_id', '=', 'tbl_akses.menu_id')
                 ->where([

@@ -26,9 +26,9 @@ Route::prefix('auth')->group(function () {
 Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
 
     // Gudang routes
-    Route::middleware(['checkRoleUser:gudang,submenu'])->group(function () {
+    Route::middleware(['checkRoleUser:/gudang,submenu'])->group(function () {
         Route::controller(GudangController::class)->group(function () {
-            Route::get('/gudang', 'index')->name('gudang.index');
+            Route::get('/gudang', 'index')->name('gudang.index');   
             Route::post('/gudang', 'store')->name('gudang.store');
             Route::get('/gudang/{id}', 'show')->name('gudang.show');
             Route::put('/gudang/{id}', 'update')->name('gudang.update');
@@ -37,7 +37,7 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
     });
 
     // Satuan routes
-    Route::middleware(['checkRoleUser:satuan,submenu'])->group(function () {
+    Route::middleware(['checkRoleUser:/satuan,submenu'])->group(function () {
         Route::controller(SatuanController::class)->group(function () {
             Route::get('/satuan', 'show')->name('satuan.show');
             Route::post('/satuan', 'store')->name('satuan.store');
@@ -47,7 +47,7 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
     });
 
     // Jenis Barang routes
-    Route::middleware(['checkRoleUser:jenisbarang,submenu'])->group(function () {
+    Route::middleware(['checkRoleUser:/jenisbarang,submenu'])->group(function () {
         Route::controller(JenisBarangController::class)->group(function () {
             Route::get('/jenisbarang', 'show')->name('jenisbarang.show');
             Route::post('/jenisbarang', 'store')->name('jenisbarang.store');
@@ -57,7 +57,7 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
     });
 
     // Role management routes
-    Route::middleware(['checkRoleUser:roles,submenu'])->group(function () {
+    Route::middleware(['checkRoleUser:/roles,submenu'])->group(function () {
         Route::controller(RoleController::class)->group(function () {
             Route::get('/roles', 'index')->name('roles.index');
             Route::post('/roles', 'store')->name('roles.store');
@@ -172,3 +172,12 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
 //     });
 // });
 });
+// Route::middleware(['auth:api'])->group(function () {
+//     Route::controller(GudangController::class)->group(function () {
+//         Route::get('/gudang', 'index')->name('gudang.index');   
+//         Route::post('/gudang', 'store')->name('gudang.store');
+//         Route::get('/gudang/{id}', 'show')->name('gudang.show');
+//         Route::put('/gudang/{id}', 'update')->name('gudang.update');
+//         Route::delete('/gudang/{id}', 'destroy')->name('gudang.destroy');
+//     });
+// });
