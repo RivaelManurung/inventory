@@ -71,7 +71,7 @@ class CheckRoleUser
 
         // Debugging hasil query (aktifkan jika perlu)
         // dd(compact('menu', 'type', 'roleId', 'hasAccess'));
-        dd(compact('menu', 'type', 'roleId', 'hasAccess')); // Debugging hasil query
+        // dd(compact('menu', 'type', 'roleId', 'hasAccess')); // Debugging hasil query
 
         if (!$hasAccess) {
             return response()->json(['message' => 'Forbidden'], 403);

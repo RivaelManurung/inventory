@@ -16,17 +16,17 @@ use Exception;
 
 class AksesController extends BaseController
 {
-    // public function __construct()
-    // {
-    //     $this->middleware(function ($request, $next) {
-    //         if (!Auth::check() || !Auth::user()->hasRole('superadmin', 'api')) {
-    //             return $this->sendError('Unauthorized access', [], 403);
-    //         }
-    //         return $next($request);
-    //     });
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if (!Auth::check() || !Auth::user()->hasRole('superadmin', 'api')) {
+                return $this->sendError('Unauthorized access', [], 403);
+            }
+            return $next($request);
+        });
         
         
-    // }
+    }
 
     public function getAksesByRole($role_id)
     {
