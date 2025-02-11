@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Master;
 
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\Admin\BaseController;
+use App\Http\Controllers\Controller;
 use App\Models\AksesModel;
 use App\Models\MenuModel;
 use App\Models\SubmenuModel;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Exception;
 
@@ -20,12 +19,10 @@ class AksesController extends BaseController
     {
         $this->middleware(function ($request, $next) {
             if (!Auth::check() || !Auth::user()->hasRole('superadmin', 'api')) {
-                return $this->sendError('Unauthorized access', [], 403);
+                return response()->json(['error' => 'Unauthorized access'], 403);
             }
             return $next($request);
         });
-        
-        
     }
 
     public function getAksesByRole($role_id)
@@ -33,17 +30,17 @@ class AksesController extends BaseController
         try {
             $role = Role::findById($role_id, 'api');
             if (!$role) {
-                return $this->sendError('Role not found', [], 404);
+                return response()->json(['error' => 'Role not found'], 404);
             }
 
             $akses = AksesModel::where('role_id', $role_id)->get();
             if ($akses->isEmpty()) {
-                return $this->sendError('No access found for this role', [], 404);
+                return response()->json(['error' => 'No access found for this role'], 404);
             }
 
-            return $this->sendResponse($akses, 'Access data retrieved successfully');
+            return response()->json(['data' => $akses, 'message' => 'Access data retrieved successfully'], 200);
         } catch (Exception $e) {
-            return $this->sendError('Server Error', [$e->getMessage()], 500);
+            return response()->json(['error' => 'Server Error', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -58,11 +55,11 @@ class AksesController extends BaseController
             ]);
 
             $akses = AksesModel::create($validatedData);
-            return $this->sendResponse($akses, 'Access added successfully');
+            return response()->json(['data' => $akses, 'message' => 'Access added successfully'], 201);
         } catch (ValidationException $e) {
-            return $this->sendError('Validation Error', $e->errors(), 422);
+            return response()->json(['error' => 'Validation Error', 'details' => $e->errors()], 422);
         } catch (Exception $e) {
-            return $this->sendError('Failed to add access', [$e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to add access', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -79,13 +76,13 @@ class AksesController extends BaseController
             $deleted = AksesModel::where($validatedData)->delete();
 
             if ($deleted) {
-                return $this->sendResponse([], 'Access deleted successfully');
+                return response()->json(['message' => 'Access deleted successfully'], 200);
             }
-            return $this->sendError('Access not found', [], 404);
+            return response()->json(['error' => 'Access not found'], 404);
         } catch (ValidationException $e) {
-            return $this->sendError('Validation Error', $e->errors(), 422);
+            return response()->json(['error' => 'Validation Error', 'details' => $e->errors()], 422);
         } catch (Exception $e) {
-            return $this->sendError('Failed to remove access', [$e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to remove access', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -94,7 +91,7 @@ class AksesController extends BaseController
         try {
             $role = Role::findById($role_id, 'api');
             if (!$role) {
-                return $this->sendError('Role not found', [], 404);
+                return response()->json(['error' => 'Role not found'], 404);
             }
 
             AksesModel::where('role_id', $role_id)->delete();
@@ -113,9 +110,9 @@ class AksesController extends BaseController
             }
 
             AksesModel::insert($data);
-            return $this->sendResponse([], 'All access set successfully');
+            return response()->json(['message' => 'All access set successfully'], 200);
         } catch (Exception $e) {
-            return $this->sendError('Failed to set all access', [$e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to set all access', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -124,11 +121,11 @@ class AksesController extends BaseController
         try {
             $deleted = AksesModel::where('role_id', $role_id)->delete();
             if ($deleted) {
-                return $this->sendResponse([], 'All access removed successfully');
+                return response()->json(['message' => 'All access removed successfully'], 200);
             }
-            return $this->sendError('Failed to remove access', [], 500);
+            return response()->json(['error' => 'Failed to remove access'], 500);
         } catch (Exception $e) {
-            return $this->sendError('Failed to remove access', [$e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to remove access', 'details' => $e->getMessage()], 500);
         }
     }
 }
