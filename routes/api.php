@@ -26,6 +26,13 @@ Route::prefix('auth')->group(function () {
 // Protected routes with dynamic role checking
 Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
 
+    // Profile
+    Route::get('/admin/profile/{user}', [UserController::class, 'profile']);
+    Route::post('/admin/updatePassword/{user}', [UserController::class, 'updatePassword']);
+    Route::post('/admin/updateProfile/{user}', [UserController::class, 'updateProfile']);
+    // Route::get('/admin/appreance/', [AppreanceController::class, 'index']);
+    // Route::post('/admin/appreance/{setting}', [AppreanceController::class, 'update']);
+
     // Gudang routes
     Route::middleware(['checkRoleUser:/gudang,submenu'])->group(function () {
         Route::controller(GudangController::class)->group(function () {
@@ -40,7 +47,8 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
     // Satuan routes
     Route::middleware(['checkRoleUser:/satuan,submenu'])->group(function () {
         Route::controller(SatuanController::class)->group(function () {
-            Route::get('/satuan', 'show')->name('satuan.show');
+            Route::get('/satuan', 'index')->name('satuan.index');
+            Route::get('/satuan/{id}', 'show')->name('satuan.show');
             Route::post('/satuan', 'store')->name('satuan.store');
             Route::put('/satuan/{satuan}', 'update')->name('satuan.update');
             Route::delete('/satuan/{satuan}', 'destroy')->name('satuan.destroy');
@@ -102,12 +110,10 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
 
         Route::middleware(['checkRoleUser:4,othermenu'])->group(function () {
             // List User
-            Route::controlller(UserController::class)->group(function () {
-
-
+            Route::controller(UserController::class)->group(function () {
                 Route::resource('/admin/user', UserController::class);
                 Route::get('/admin/user/show/', [UserController::class, 'show'])->name('user.getuser');
-                Route::post('/admin/user/hapus', [UserController::class, 'hapus']);
+                Route::post('/admin/user/hapus', [UserController::class, 'destroy']);
             });
         });
 
