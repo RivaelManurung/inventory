@@ -3,13 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\AksesModel;
-use App\Models\BarangkeluarModel;
-use App\Models\BarangmasukModel;
-use App\Models\BarangModel;
-use App\Models\JenisBarangModel;
-use App\Models\GudangModel;
-use App\Models\SatuanModel;
+use App\Models\{BarangModel, JenisBarangModel, SatuanModel, GudangModel};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -19,63 +13,32 @@ class BarangController extends Controller
     public function index()
     {
         try {
-            $barang = BarangModel::with(['jenisBarang', 'satuan', 'gudang'])->get()->map(function ($item) {
-                if (!is_null($item->barcode)) {
-                    $item->barcodeUrl = asset('storage/barang/barcodes/' . $item->barcode);
-                } else {
-                    $item->barcodeUrl = null;
-                }
-                return $item;
-            });
-
             return response()->json([
                 'status' => 'success',
                 'data' => [
-                    'barang' => $barang,
-                    'jenisbarang' => JenisBarangModel::orderBy('jenisbarang_id', 'DESC')->get(),
-                    'satuan' => SatuanModel::orderBy('satuan_id', 'DESC')->get(),
-                    'gudang' => GudangModel::orderBy('gudang_id', 'DESC')->get()
+                    'barang' => BarangModel::with(['jenisBarang', 'satuan', 'gudang'])->get()->map(fn($item) => [
+                        'barcodeUrl' => $item->barcode ? asset("storage/barang/barcodes/{$item->barcode}") : null,
+                        ...$item->toArray()
+                    ]),
+                    'jenisbarang' => JenisBarangModel::latest('jenisbarang_id')->get(),
+                    'satuan' => SatuanModel::latest('satuan_id')->get(),
+                    'gudang' => GudangModel::latest('gudang_id')->get()
                 ]
             ]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse($e);
         }
     }
 
     public function getBarang($id)
     {
-        try {
-            $barang = BarangModel::with(['jenisBarang', 'satuan', 'gudang'])
-                ->where('barang_kode', $id)
-                ->first();
-
-            if (!$barang) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Barang not found'
-                ], 404);
-            }
-
-            return response()->json([
-                'status' => 'success',
-                'data' => $barang
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
-        }
+        return $this->findBarang($id);
     }
 
     public function store(Request $request)
     {
         try {
-            // Validate request
-            $request->validate([
+            $data = $request->validate([
                 'nama' => 'required',
                 'kode' => 'required|unique:tbl_barang,barang_kode',
                 'jenisbarang' => 'required',
@@ -85,47 +48,14 @@ class BarangController extends Controller
                 'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
-            $img = "image.png";
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->nama)));
-
-            // Handle image upload
-            if ($request->hasFile('foto')) {
-                $image = $request->file('foto');
-                $image->storeAs('public/barang/', $image->hashName());
-                $img = $image->hashName();
-            }
-
-            // Generate QR Code
-            $qrCodePath = 'public/barang/barcodes/' . $request->kode . '.png';
-            $qrCode = QrCode::format('png')->size(200)->generate($request->kode);
-            Storage::put($qrCodePath, $qrCode);
-            $qrCodeFileName = basename($qrCodePath);
-
-            // Create barang
-            $barang = BarangModel::create([
-                'barang_gambar' => $img,
-                'jenisbarang_id' => $request->jenisbarang,
-                'satuan_id' => $request->satuan,
-                'gudang_id' => $request->gudang,
-                'barang_kode' => $request->kode,
-                'barang_nama' => $request->nama,
-                'barang_slug' => $slug,
-                'barang_harga' => $request->harga,
-                'barang_stok' => 0,
-                'barcode' => $qrCodeFileName,
-            ]);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Barang created successfully',
-                'data' => $barang
-            ], 201);
-
+            $data['barang_gambar'] = $request->hasFile('foto') ? $this->uploadImage($request->file('foto')) : 'image.png';
+            $data['barang_slug'] = str_slug($data['nama']);
+            $data['barang_stok'] = 0;
+            $data['barcode'] = $this->generateQrCode($data['kode']);
+            
+            return response()->json(['status' => 'success', 'message' => 'Barang created successfully', 'data' => BarangModel::create($data)], 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse($e);
         }
     }
 
@@ -134,10 +64,9 @@ class BarangController extends Controller
         try {
             $barang = BarangModel::where('barang_kode', $id)->firstOrFail();
             
-            // Validate request
-            $request->validate([
+            $data = $request->validate([
                 'nama' => 'required',
-                'kode' => 'required|unique:tbl_barang,barang_kode,' . $barang->barang_id . ',barang_id',
+                'kode' => "required|unique:tbl_barang,barang_kode,{$barang->barang_id},barang_id",
                 'jenisbarang' => 'required',
                 'satuan' => 'required',
                 'gudang' => 'required',
@@ -146,44 +75,17 @@ class BarangController extends Controller
                 'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048'
             ]);
 
-            $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $request->nama)));
-
-            $updateData = [
-                'jenisbarang_id' => $request->jenisbarang,
-                'satuan_id' => $request->satuan,
-                'gudang_id' => $request->gudang,
-                'barang_kode' => $request->kode,
-                'barang_nama' => $request->nama,
-                'barang_slug' => $slug,
-                'barang_harga' => $request->harga,
-                'barang_stok' => $request->stok,
-            ];
-
             if ($request->hasFile('foto')) {
-                $image = $request->file('foto');
-                $image->storeAs('public/barang', $image->hashName());
-                
-                // Delete old image if it exists and is not the default
-                if ($barang->barang_gambar != 'image.png') {
-                    Storage::delete('public/barang/' . $barang->barang_gambar);
-                }
-                
-                $updateData['barang_gambar'] = $image->hashName();
+                Storage::delete("public/barang/{$barang->barang_gambar}");
+                $data['barang_gambar'] = $this->uploadImage($request->file('foto'));
             }
 
-            $barang->update($updateData);
+            $data['barang_slug'] = str_slug($data['nama']);
+            $barang->update($data);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Barang updated successfully',
-                'data' => $barang
-            ]);
-
+            return response()->json(['status' => 'success', 'message' => 'Barang updated successfully', 'data' => $barang]);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse($e);
         }
     }
 
@@ -191,31 +93,46 @@ class BarangController extends Controller
     {
         try {
             $barang = BarangModel::where('barang_kode', $id)->firstOrFail();
-
-            // Delete image if it exists and is not the default
-            if ($barang->barang_gambar != 'image.png') {
-                Storage::delete('public/barang/' . $barang->barang_gambar);
-            }
-
-            // Delete QR code if it exists
-            if ($barang->barcode) {
-                Storage::delete('public/barang/barcodes/' . $barang->barcode);
-            }
-
+            
+            Storage::delete(["public/barang/{$barang->barang_gambar}", "public/barang/barcodes/{$barang->barcode}"]);
             $barang->delete();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Barang deleted successfully'
-            ]);
-
+            return response()->json(['status' => 'success', 'message' => 'Barang deleted successfully']);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 500);
+            return $this->errorResponse($e);
         }
     }
+
+    private function findBarang($id)
+    {
+        try {
+            $barang = BarangModel::with(['jenisBarang', 'satuan', 'gudang'])->where('barang_kode', $id)->first();
+            
+            return $barang ? response()->json(['status' => 'success', 'data' => $barang]) 
+                           : response()->json(['status' => 'error', 'message' => 'Barang not found'], 404);
+        } catch (\Exception $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    private function uploadImage($image)
+    {
+        $image->storeAs('public/barang', $image->hashName());
+        return $image->hashName();
+    }
+
+    private function generateQrCode($kode)
+    {
+        $path = "public/barang/barcodes/{$kode}.png";
+        Storage::put($path, QrCode::format('png')->size(200)->generate($kode));
+        return basename($path);
+    }
+
+    private function errorResponse($e)
+    {
+        return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+    }
+}
 
     // public function getStockCalculation(Request $request, $kode)
     // {
@@ -251,4 +168,3 @@ class BarangController extends Controller
     //         ], 500);
     //     }
     // }
-}
