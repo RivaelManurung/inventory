@@ -20,6 +20,7 @@ class BarangModel extends Model
         'barang_harga',
         'barang_stok',
         'barang_gambar',
+        'jenis_barang',
         'barcode'
     ]; 
 }
