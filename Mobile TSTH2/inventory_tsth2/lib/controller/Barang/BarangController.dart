@@ -4,18 +4,39 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:inventory_tsth2/config/api.dart';
 
 class BarangController {
-  Future<Map<String, dynamic>> getAllBarang() async {
+  Future<List<Map<String, dynamic>>> getAllBarang() async {
     try {
-      final response = await http.get(Uri.parse('$url/barang'));
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      final response = await http.get(
+        Uri.parse('$url/barang'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token', // Tambahkan token di sini
+        },
+      );
+
+      print('Response Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'data': data['data']};
+        if (data is Map && data.containsKey('data') && data['data'] is List) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          print('Data tidak dalam format yang diharapkan');
+          return [];
+        }
       } else {
-        return {'success': false, 'message': 'Gagal mengambil data'};
+        print(
+            'Gagal mendapatkan data barang, Status Code: ${response.statusCode}');
+        return [];
       }
     } catch (e) {
-      return {'success': false, 'message': e.toString()};
+      print('Error: $e');
+      return [];
     }
   }
 
@@ -34,7 +55,8 @@ class BarangController {
     }
   }
 
-  Future<Map<String, dynamic>> addBarang(Map<String, dynamic> barangData) async {
+  Future<Map<String, dynamic>> addBarang(
+      Map<String, dynamic> barangData) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
@@ -59,7 +81,8 @@ class BarangController {
     }
   }
 
-  Future<Map<String, dynamic>> updateBarang(String kode, Map<String, dynamic> barangData) async {
+  Future<Map<String, dynamic>> updateBarang(
+      String kode, Map<String, dynamic> barangData) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
@@ -107,7 +130,8 @@ class BarangController {
     }
   }
 
-  Future<Map<String, dynamic>> getStockCalculation(String kode, {String? startDate, String? endDate}) async {
+  Future<Map<String, dynamic>> getStockCalculation(String kode,
+      {String? startDate, String? endDate}) async {
     try {
       String urlApi = '$url/barang/$kode/stock';
 

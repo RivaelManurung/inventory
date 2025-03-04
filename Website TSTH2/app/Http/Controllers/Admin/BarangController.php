@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\{BarangModel, JenisBarangModel, SatuanModel, GudangModel};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str; 
+
 
 class BarangController extends Controller
 {
@@ -49,7 +51,7 @@ class BarangController extends Controller
             ]);
 
             $data['barang_gambar'] = $request->hasFile('foto') ? $this->uploadImage($request->file('foto')) : 'image.png';
-            $data['barang_slug'] = str_slug($data['nama']);
+            $data['barang_slug'] = Str::slug($data['nama']);
             $data['barang_stok'] = 0;
             $data['barcode'] = $this->generateQrCode($data['kode']);
             
@@ -80,7 +82,7 @@ class BarangController extends Controller
                 $data['barang_gambar'] = $this->uploadImage($request->file('foto'));
             }
 
-            $data['barang_slug'] = str_slug($data['nama']);
+            $data['barang_slug'] = str::slug($data['nama']);
             $barang->update($data);
 
             return response()->json(['status' => 'success', 'message' => 'Barang updated successfully', 'data' => $barang]);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:inventory_tsth2/controller/Barang/BarangController.dart';
 import 'package:inventory_tsth2/widget/custom_button.dart';
 import 'package:inventory_tsth2/widget/custom_formfield.dart';
+import 'package:inventory_tsth2/widget/custom_button.dart';
 
 class BarangKeluarPage extends StatefulWidget {
   @override
@@ -9,9 +10,10 @@ class BarangKeluarPage extends StatefulWidget {
 }
 
 class _BarangKeluarPageState extends State<BarangKeluarPage> {
-  final BarangKeluarController _controller = BarangKeluarController();
+  final BarangController _controller = BarangController();
   bool isLoading = false;
 
+  @override
   @override
   void initState() {
     super.initState();
@@ -20,7 +22,7 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
 
   Future<void> _loadData() async {
     setState(() => isLoading = true);
-    await _controller.getBarangKeluar();
+    await _controller.getAllBarang(); // Ubah ini
     setState(() => isLoading = false);
   }
 
@@ -34,7 +36,8 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text(data == null ? 'Tambah Barang Keluar' : 'Edit Barang Keluar'),
+          title: Text(
+              data == null ? 'Tambah Barang Keluar' : 'Edit Barang Keluar'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -43,6 +46,10 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
                 hintText: "Masukkan nama barang",
                 obsecureText: false,
                 controller: namaController,
+                suffixIcon: const SizedBox(), // Tambahkan ini
+                textInputType: TextInputType.text, // Tambahkan ini
+                textInputAction: TextInputAction.next, // Tambahkan ini
+                maxLines: 1, // Tambahkan ini
               ),
               SizedBox(height: 10),
               CustomFormField(
@@ -50,7 +57,10 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
                 hintText: "Masukkan jumlah",
                 obsecureText: false,
                 controller: jumlahController,
-                textInputType: TextInputType.number,
+                suffixIcon: const SizedBox(), // Tambahkan ini
+                textInputType: TextInputType.number, // Tambahkan ini
+                textInputAction: TextInputAction.done, // Tambahkan ini
+                maxLines: 1, // Tambahkan ini
               ),
             ],
           ),
@@ -62,7 +72,8 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
             CustomButton(
               text: data == null ? 'Tambah' : 'Update',
               onTap: () async {
-                if (namaController.text.isEmpty || jumlahController.text.isEmpty) {
+                if (namaController.text.isEmpty ||
+                    jumlahController.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("Semua field harus diisi")),
                   );
@@ -73,9 +84,9 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
                   'jumlah': int.parse(jumlahController.text.trim()),
                 };
                 if (data == null) {
-                  await _controller.tambahBarangKeluar(barang);
+                  await _controller.addBarang(barang);
                 } else {
-                  await _controller.updateBarangKeluar(data['id'], barang);
+                  await _controller.updateBarang(data['id'], barang);
                 }
                 Navigator.pop(context);
                 _loadData();
@@ -93,29 +104,44 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
       appBar: AppBar(title: Text("Barang Keluar")),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _controller.barangKeluar.length,
-              itemBuilder: (context, index) {
-                final barang = _controller.barangKeluar[index];
-                return ListTile(
-                  title: Text(barang['nama']),
-                  subtitle: Text("Jumlah: ${barang['jumlah']}"),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue),
-                        onPressed: () => _showFormDialog(data: barang),
+          : FutureBuilder<List<Map<String, dynamic>>>(
+              future: _controller.getAllBarang(), // Panggil fungsi asinkron
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text("Terjadi kesalahan"));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return Center(child: Text("Tidak ada barang keluar"));
+                }
+
+                final barangList = snapshot.data!;
+
+                return ListView.builder(
+                  itemCount: barangList.length,
+                  itemBuilder: (context, index) {
+                    final barang = barangList[index];
+                    return ListTile(
+                      title: Text(barang['nama']),
+                      subtitle: Text("Jumlah: ${barang['jumlah']}"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () => _showFormDialog(data: barang),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              await _controller.deleteBarang(barang['id']);
+                              _loadData();
+                            },
+                          ),
+                        ],
                       ),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red),
-                        onPressed: () async {
-                          await _controller.hapusBarangKeluar(barang['id']);
-                          _loadData();
-                        },
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 );
               },
             ),
@@ -123,6 +149,27 @@ class _BarangKeluarPageState extends State<BarangKeluarPage> {
         child: Icon(Icons.add),
         onPressed: () => _showFormDialog(),
       ),
+    );
+  }
+}
+
+class CustomButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onTap;
+  final Color color;
+
+  const CustomButton({
+    required this.text,
+    required this.onTap,
+    this.color = Colors.blue, // Warna default
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(backgroundColor: color),
+      child: Text(text),
     );
   }
 }

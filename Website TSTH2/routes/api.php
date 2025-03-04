@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\LoginController;
 use App\Http\Controllers\Admin\GudangController;
 use App\Http\Controllers\Admin\SatuanController;
 use App\Http\Controllers\Admin\JenisBarangController;
+use App\Http\Controllers\Admin\BarangController;
 use App\Http\Controllers\Master\RoleController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Master\AksesController;
@@ -43,6 +44,18 @@ Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
             Route::delete('/gudang/{id}', 'destroy')->name('gudang.destroy');
         });
     });
+
+    // Barang routes
+Route::middleware(['checkRoleUser:/barang,submenu'])->group(function () {
+    Route::controller(BarangController::class)->group(function () {
+        Route::get('/barang', 'index')->name('barang.index');
+        Route::get('/barang/{id}', 'getBarang')->name('barang.get');
+        Route::post('/barang', 'store')->name('barang.store');
+        Route::put('/barang/{id}', 'update')->name('barang.update');
+        Route::delete('/barang/{id}', 'destroy')->name('barang.destroy');
+    });
+});
+
 
     // Satuan routes
     Route::middleware(['checkRoleUser:/satuan,submenu'])->group(function () {

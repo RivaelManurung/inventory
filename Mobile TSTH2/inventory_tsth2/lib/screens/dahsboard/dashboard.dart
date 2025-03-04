@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_tsth2/screens/auth/login.dart';
+import 'package:inventory_tsth2/screens/barang/index_barang.dart';
+import 'package:inventory_tsth2/screens/barang_keluar/index_bk.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:inventory_tsth2/screens/barang_keluar/qrcode.dart';
 
@@ -67,6 +69,7 @@ class DashboardPage extends StatelessWidget {
           children: [
             _buildDashboardCard(context, "Barang Masuk", Icons.inventory_2, Colors.green, BarangMasukPage()),
             _buildDashboardCard(context, "Barang Keluar", Icons.outbox, Colors.red, BarangKeluarPage()),
+            _buildDashboardCard(context, "Barang", Icons.category, Colors.orange, IndexBarangPage()),
           ],
         ),
       ),
@@ -121,3 +124,4 @@ class BarangMasukPage extends StatelessWidget {
     );
   }
 }
+

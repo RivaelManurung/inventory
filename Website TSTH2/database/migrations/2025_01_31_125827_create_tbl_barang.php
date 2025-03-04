@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('tbl_barang', function (Blueprint $table) {
             $table->increments('barang_id');
-            $table->unsignedBigInteger('kategoribarang_id')->nullable();
-            $table->foreign('kategoribarang_id')->references('id')->on('jenis_barang')->onDelete('set null');
+            $table->unsignedBigInteger('jenisbarang_id')->nullable();
+            $table->foreign('jenisbarang_id')->references('jenisbarang_id')->on('tbl_jenisbarang')->onDelete('set null');
             $table->string('satuan_id')->nullable();
             $table->string('gudang_id')->nullable();
             $table->string('barang_kode');
