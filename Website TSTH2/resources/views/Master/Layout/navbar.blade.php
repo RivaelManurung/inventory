@@ -8,12 +8,16 @@
 		</div>
 
 		<div class="navbar-brand flex-1 flex-lg-0">
-			<a href="index.html" class="d-inline-flex align-items-center">
-				<img src="{{ asset('assets/images/logo_icon.svg') }}" alt="">
-				<img src="{{ asset('assets/images/logo_text_light.svg') }}" class="d-none d-sm-inline-block h-16px ms-3"
-					alt="">
+			<a href="{{ url('/dashboard') }}" class="d-inline-flex align-items-center">
+				<img src="{{ asset('assets/images/logo.jpg') }}" class="w-16 h-16" alt="Logo Icon">
+				<span class="d-none d-sm-inline-block ms-3 fw-bold fs-5 text-uppercase text-light">
+					Inventori TSTH2
+				</span>
 			</a>
 		</div>
+		
+		
+		
 
 		<ul class="nav flex-row">
 			<li class="nav-item d-lg-none">
