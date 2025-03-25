@@ -18,7 +18,7 @@
                 <div class="dropdown w-100 w-sm-auto">
                     <a href="#" class="d-flex align-items-center text-body lh-1 dropdown-toggle py-sm-2"
                         data-bs-toggle="dropdown" data-bs-display="static">
-                        <img src="{{ asset('global/assets/images/brands/tesla.svg') }}" class="w-32px h-32px me-2" alt="">
+                        <img src="{{ asset('assets/images/brands/tesla.svg') }}" class="w-32px h-32px me-2" alt="">
                         <div class="me-auto me-lg-1">
                             <div class="fs-sm text-muted mb-1">Customer</div>
                             <div class="fw-semibold">Tesla Motors Inc</div>
@@ -34,35 +34,35 @@
                             </a>
                         </div>
                         <a href="#" class="dropdown-item active py-2">
-                            <img src="{{ asset('global/assets/images/brands/tesla.svg') }}" class="w-32px h-32px me-2" alt="">
+                            <img src="{{ asset('assets/images/brands/tesla.svg') }}" class="w-32px h-32px me-2" alt="">
                             <div>
                                 <div class="fw-semibold">Tesla Motors Inc</div>
                                 <div class="fs-sm text-muted">42 users</div>
                             </div>
                         </a>
                         <a href="#" class="dropdown-item py-2">
-                            <img src="{{ asset('global/assets/images/brands/debijenkorf.svg') }}" class="w-32px h-32px me-2" alt="">
+                            <img src="{{ asset('assets/images/brands/debijenkorf.svg') }}" class="w-32px h-32px me-2" alt="">
                             <div>
                                 <div class="fw-semibold">De Bijenkorf</div>
                                 <div class="fs-sm text-muted">49 users</div>
                             </div>
                         </a>
                         <a href="#" class="dropdown-item py-2">
-                            <img src="{{ asset('global/assets/images/brands/klm.svg') }}" class="w-32px h-32px me-2" alt="">
+                            <img src="{{ asset('assets/images/brands/klm.svg') }}" class="w-32px h-32px me-2" alt="">
                             <div>
                                 <div class="fw-semibold">Royal Dutch Airlines</div>
                                 <div class="fs-sm text-muted">18 users</div>
                             </div>
                         </a>
                         <a href="#" class="dropdown-item py-2">
-                            <img src="{{ asset('global/assets/images/brands/shell.svg') }}" class="w-32px h-32px me-2" alt="">
+                            <img src="{{ asset('assets/images/brands/shell.svg') }}" class="w-32px h-32px me-2" alt="">
                             <div>
                                 <div class="fw-semibold">Royal Dutch Shell</div>
                                 <div class="fs-sm text-muted">54 users</div>
                             </div>
                         </a>
                         <a href="#" class="dropdown-item py-2">
-                            <img src="{{ asset('global/assets/images/brands/bp.svg') }}" class="w-32px h-32px me-2" alt="">
+                            <img src="{{ asset('assets/images/brands/bp.svg') }}" class="w-32px h-32px me-2" alt="">
                             <div>
                                 <div class="fw-semibold">BP plc</div>
                                 <div class="fs-sm text-muted">23 users</div>
@@ -75,15 +75,15 @@
 
                 <div class="d-inline-flex mt-3 mt-sm-0">
                     <a href="#" class="status-indicator-container ms-1">
-                        <img src="{{ asset('global/assets/images/demo/users/face24.jpg') }}" class="w-32px h-32px rounded-pill" alt="">
+                        <img src="{{ asset('assets/images/demo/users/face24.jpg') }}" class="w-32px h-32px rounded-pill" alt="">
                         <span class="status-indicator bg-warning"></span>
                     </a>
                     <a href="#" class="status-indicator-container ms-1">
-                        <img src="{{ asset('global/assets/images/demo/users/face1.jpg') }}" class="w-32px h-32px rounded-pill" alt="">
+                        <img src="{{ asset('assets/images/demo/users/face1.jpg') }}" class="w-32px h-32px rounded-pill" alt="">
                         <span class="status-indicator bg-success"></span>
                     </a>
                     <a href="#" class="status-indicator-container ms-1">
-                        <img src="{{ asset('global/assets/images/demo/users/face3.jpg') }}" class="w-32px h-32px rounded-pill" alt="">
+                        <img src="{{ asset('assets/images/demo/users/face3.jpg') }}" class="w-32px h-32px rounded-pill" alt="">
                         <span class="status-indicator bg-danger"></span>
                     </a>
                     <a href="#" class="btn btn-outline-primary btn-icon w-32px h-32px rounded-pill ms-3">
