@@ -1,18 +1,80 @@
 @extends('Master.Layout.app')
-
+@section('page-title', 'Data Barang')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+@section('breadcrumb')
+    <a href="{{ url('/dashboard') }}" class="breadcrumb-item"><i class="ph-house"></i> Home</a>
+    <span class="breadcrumb-item active">Data Barang</span>
+@endsection
 @section('content')
-<!-- PAGE-HEADER -->
-<div class="page-header">
-    <h1 class="page-title"></h1>
-    <div>
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item text-gray">Master Data</li>
-            <li class="breadcrumb-item active" aria-current="page"></li>
-        </ol>
-    </div>
+<!-- ROW -->
+<div class="container mt-5">
+    <h2 class="mb-4">Data Barang</h2>
+    <a href="#" class="btn btn-success mb-3"><i class="bi bi-plus-lg"></i> Tambah Barang</a>
+    <table class="table table-bordered text-center">
+        <thead class="table-dark">
+            <tr>
+                <th>No</th>
+                <th>Gambar</th>
+                <th>Barcode</th>
+                <th>Kode Barang</th>
+                <th>Nama Barang</th>
+                <th>Jenis</th>
+                <th>Harga</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            <script>
+                let barang = [
+                    {id: 1, gambar: "https://via.placeholder.com/50", kode: "BRG001", nama: "Beras", jenis: "Makanan", harga: 12000},
+                    {id: 2, gambar: "https://via.placeholder.com/50", kode: "BRG002", nama: "Minyak Goreng", jenis: "Sembako", harga: 15000},
+                    {id: 3, gambar: "https://via.placeholder.com/50", kode: "BRG003", nama: "Gula Pasir", jenis: "Makanan", harga: 14000},
+                ];
+                barang.forEach((item, index) => {
+                    document.write(`
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><img src="${item.gambar}" alt="Gambar" width="50"></td>
+                            <td><svg id="barcode${item.id}"></svg></td>
+                            <td>${item.kode}</td>
+                            <td>${item.nama}</td>
+                            <td>${item.jenis}</td>
+                            <td>Rp${item.harga.toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-info"><i class="bi bi-pencil"></i> Edit</button>
+                                <button class="btn btn-danger" onclick="confirmDelete(${item.id})"><i class="bi bi-trash"></i> Hapus</button>
+                            </td>
+                        </tr>
+                    `);
+                });
+            </script>
+        </tbody>
+    </table>
 </div>
-<!-- PAGE-HEADER END -->
 
+<script>
+    barang.forEach(item => {
+        JsBarcode(`#barcode${item.id}`, item.kode, {
+            format: "CODE128",
+            width: 1.5,
+            height: 40,
+            displayValue: false
+        });
+    });
+    function confirmDelete(id) {
+        alert("Apakah Anda yakin ingin menghapus barang dengan ID: " + id + "?");
+    }
+</script>
+<!-- END ROW -->
+@endsection
+{{-- @extends('Master.Layout.app')
+@section('page-title', 'Data Barang')
+@section('breadcrumb')
+    <a href="{{ url('/dashboard') }}" class="breadcrumb-item"><i class="ph-house"></i> Home</a>
+    <span class="breadcrumb-item active">Data Barang</span>
+@endsection
+@section('content')
 <!-- ROW -->
 <div class="row row-sm">
     <div class="col-lg-12">
@@ -69,4 +131,4 @@
     </div>
 </div>
 <!-- END ROW -->
-@endsection
+@endsection --}}

@@ -3,7 +3,7 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                Home - <span class="fw-normal">@yield('title', 'Dashboard')</span>
+                @yield('page-title', 'Dashboard') - <span class="fw-normal">@yield('title', 'Dashboard')</span>
             </h4>
 
             <a href="#page_header"
@@ -17,9 +17,8 @@
     <div class="page-header-content d-lg-flex border-top">
         <div class="d-flex">
             <div class="breadcrumb py-2">
-                <a href="index.html" class="breadcrumb-item"><i class="ph-house"></i></a>
-                <a href="#" class="breadcrumb-item">Home</a>
-                <span class="breadcrumb-item active">Dashboard</span>
+                {{-- <a href="{{ url('/') }}" class="breadcrumb-item"><i class="ph-house"></i></a> --}}
+                @yield('breadcrumb')
             </div>
 
             <a href="#breadcrumb_elements"
