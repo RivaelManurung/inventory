@@ -13,6 +13,8 @@ Route::view('/login', 'Admin.auth.login')->name('login');
 
 // Halaman dashboard (tanpa middleware auth)
 Route::view('/dashboard', 'Admin.Dashboard.dashboard')->name('dashboard');
+Route::view('/transaksi', 'Admin.Barang.Transaksi')->name('transaksi');
+
 
 // Logout (hanya menghapus token di frontend)
 Route::post('/logout', function () {

@@ -34,7 +34,7 @@
                         <i class="ph-dots-three sidebar-resize-show"></i>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link active">
+                        <a href="{{ url('/dashboard') }}" class="nav-link active">
                             <i class="ph-house"></i>
                             <span>Dashboard</span>
                         </a>
@@ -64,7 +64,7 @@
                             <span>Transaksi</span>
                         </a>
                         <ul class="nav-group-sub collapse">
-                            <li class="nav-item"><a href="#" class="nav-link">Barang Masuk</a></li>
+                            <li class="nav-item"><a href="{{ url('/transaksi') }}" class="nav-link">Barang Masuk</a></li>
                             <li class="nav-item"><a href="#" class="nav-link">Barang Keluar</a></li>
                             <li class="nav-item"><a href="#" class="nav-link">Peminjaman</a></li>
                             <li class="nav-item"><a href="#" class="nav-link">Pengembalian</a></li>

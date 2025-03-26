@@ -43,23 +43,23 @@
 
 
 
-    @include('Master.Layout.navbar')
+	@include('Master.Layout.navbar')
 
-    <div class="page-content d-flex">
-        
-        @include('Master.Layout.sidebar')
+	<div class="page-content d-flex">
 
-        <div class="content-wrapper">
-            <div class="content-inner">
-                <!-- **Pastikan ini ada** -->
-                @include('Master.Layout.header')
+		@include('Master.Layout.sidebar')
 
-                <div class="content">
-                    @yield('content')
-                </div>
-            </div>
-        </div>
-    </div>
+		<div class="content-wrapper">
+			<div class="content-inner">
+				<!-- **Pastikan ini ada** -->
+				@include('Master.Layout.header')
+
+				<div class="content">
+					@yield('content')
+				</div>
+			</div>
+		</div>
+	</div>
 
 	</div>
 
