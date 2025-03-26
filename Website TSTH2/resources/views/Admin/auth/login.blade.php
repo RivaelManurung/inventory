@@ -32,11 +32,16 @@
 						Member Login
 					</span>
 
-					<div id="error-message" class="alert alert-danger" style="display: none;"></div>
+					<!-- Alert Error dengan Auto-hide -->
+					<div id="error-message" class="alert alert-danger alert-dismissible fade show" role="alert" style="display: none;">
+						<span id="error-text"></span>
+						<button type="button" class="close" onclick="closeAlert()">
+							<span>&times;</span>
+						</button>
+					</div>
 
 					<div class="wrap-input100 validate-input">
-						<input class="input100" type="email" name="user_email" id="user_email" placeholder="Email"
-							required>
+						<input class="input100" type="email" name="user_email" id="user_email" placeholder="Email" required>
 						<span class="focus-input100"></span>
 						<span class="symbol-input100">
 							<i class="fa fa-envelope" aria-hidden="true"></i>
@@ -44,8 +49,7 @@
 					</div>
 
 					<div class="wrap-input100 validate-input">
-						<input class="input100" type="password" name="user_password" id="user_password"
-							placeholder="Password" required>
+						<input class="input100" type="password" name="user_password" id="user_password" placeholder="Password" required>
 						<span class="focus-input100"></span>
 						<span class="symbol-input100">
 							<i class="fa fa-lock" aria-hidden="true"></i>
@@ -63,6 +67,7 @@
 		</div>
 	</div>
 
+	<!-- Scripts -->
 	<script src="{{ asset('assets/assets_login/vendor/jquery/jquery-3.2.1.min.js') }}"></script>
 	<script src="{{ asset('assets/assets_login/vendor/bootstrap/js/popper.js') }}"></script>
 	<script src="{{ asset('assets/assets_login/vendor/bootstrap/js/bootstrap.min.js') }}"></script>
@@ -70,49 +75,61 @@
 	<script src="{{ asset('assets/assets_login/vendor/tilt/tilt.jquery.min.js') }}"></script>
 	<script>
 		$('.js-tilt').tilt({
-            scale: 1.1
-        })
+			scale: 1.1
+		});
 	</script>
 	<script src="{{ asset('assets/assets_login/js/main.js') }}"></script>
 
+	<script>
+		document.getElementById('loginForm').addEventListener('submit', async function (event) {
+			event.preventDefault();
+
+			let email = document.getElementById('user_email').value;
+			let password = document.getElementById('user_password').value;
+			let errorMessageDiv = document.getElementById('error-message');
+			let errorText = document.getElementById('error-text');
+
+			try {
+				let response = await fetch("{{ url('http://127.0.0.1:8000/api/auth/login') }}", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json"
+					},
+					body: JSON.stringify({
+						user_email: email,
+						user_password: password
+					})
+				});
+
+				let data = await response.json();
+
+				if (!response.ok) {
+					throw new Error(data.message || "Login gagal. Periksa kembali email dan password Anda.");
+				}
+
+				// Simpan token di localStorage
+				localStorage.setItem("access_token", data.data.access_token);
+				// Redirect ke dashboard
+				window.location.href = "{{ url('/dashboard') }}";
+
+			} catch (error) {
+				errorText.innerHTML = error.message;
+				errorMessageDiv.style.display = "block";
+
+				// Auto-hide alert setelah 5 detik
+				setTimeout(() => {
+					errorMessageDiv.style.display = "none";
+				}, 5000);
+			}
+		});
+
+		// Fungsi untuk menutup alert secara manual
+		function closeAlert() {
+			document.getElementById('error-message').style.display = "none";
+		}
+	</script>
+
 </body>
-<script>
-	document.getElementById('loginForm').addEventListener('submit', async function (event) {
-    event.preventDefault();
-
-    let email = document.getElementById('user_email').value;
-    let password = document.getElementById('user_password').value;
-    let errorMessageDiv = document.getElementById('error-message');
-
-    try {
-		let response = await fetch("{{ url('http://127.0.0.1:8000/api/auth/login') }}", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    },
-    body: JSON.stringify({
-        user_email: email,
-        user_password: password
-    })
-});
-
-
-        let data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Login gagal.");
-        }
-
-        localStorage.setItem("access_token", data.data.access_token);
-        window.location.href = "{{ url('/dashboard') }}";
-
-    } catch (error) {
-        errorMessageDiv.innerHTML = error.message;
-        errorMessageDiv.style.display = "block";
-    }
-});
-
-</script>
 
 </html>

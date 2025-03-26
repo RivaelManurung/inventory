@@ -1,13 +1,20 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
+// Halaman utama
 Route::get('/', function () {
     return view('welcome');
 });
-Route::get('/login', function () {
-    return view('Admin.auth.login');
-});
-Route::get('/dashboard',function (){
-return view('Admin.Dashboard.dashboard');
-});
+
+// Halaman login
+Route::view('/login', 'Admin.auth.login')->name('login');
+
+// Halaman dashboard (tanpa middleware auth)
+Route::view('/dashboard', 'Admin.Dashboard.dashboard')->name('dashboard');
+
+// Logout (hanya menghapus token di frontend)
+Route::post('/logout', function () {
+    return redirect('/login');
+})->name('logout');
