@@ -38,7 +38,7 @@
                         <span>Master Barang</span>
                     </a>
                     <ul class="nav-group-sub collapse">
-                        <li class="nav-item"><a href="{{ url('/jenis') }}" class="nav-link {{ Request::is('jenis') ? 'active' : '' }}">Jenis</a></li>
+                        <li class="nav-item"><a href="{{ url('/jenisbarang') }}" class="nav-link {{ Request::is('jenis') ? 'active' : '' }}">Jenis</a></li>
                         <li class="nav-item"><a href="{{ url('/satuan') }}" class="nav-link {{ Request::is('satuan') ? 'active' : '' }}">Satuan</a></li>
                         <li class="nav-item"><a href="{{ url('/merk') }}" class="nav-link {{ Request::is('merk') ? 'active' : '' }}">Merk</a></li>
                         <li class="nav-item"><a href="{{ url('/barang') }}" class="nav-link {{ Request::is('barang') ? 'active' : '' }}">Barang</a></li>
