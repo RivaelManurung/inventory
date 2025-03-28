@@ -38,21 +38,33 @@ class BarangController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nama' => 'required|string',
-            'kode' => 'required|string|unique:barang',
-            'harga' => 'required|numeric',
-            'stok' => 'required|integer'
+            'barang_nama' => 'required|string',
+            'barang_kode' => 'required|string|unique:tbl_barang',
+            'barang_harga' => 'required|numeric',
+            'satuan_id' => 'required|exists:tbl_satuan,satuan_id',
+            'jenisbarang_id' => 'required|exists:tbl_jenis_barang,jenisbarang_id'
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'status' => false,
                 'errors' => $validator->errors()
             ], 422);
         }
-
-        $barang = Barang::create($request->all());
-
+    
+        $data = $request->only([
+            'jenisbarang_id',
+            'satuan_id',
+            'barang_kode',
+            'barang_nama',
+            'barang_harga'
+        ]);
+        
+        $data['barang_slug'] = Str::slug($request->barang_nama);
+        $data['user_id'] = auth()->id();
+    
+        $barang = Barang::create($data);
+    
         return response()->json([
             'status' => true,
             'message' => 'Barang berhasil ditambahkan',

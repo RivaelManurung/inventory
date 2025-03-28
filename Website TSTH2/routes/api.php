@@ -4,9 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\UserAccessController;
 use App\Http\Controllers\Admin\GudangController;
-// use App\Http\Controllers\Admin\SatuanController;
-// use App\Http\Controllers\Admin\JenisBarangController;
-// use App\Http\Controllers\Admin\BarangController;
+use App\Http\Controllers\Admin\SatuanController;
+use App\Http\Controllers\Admin\JenisBarangController;
+use App\Http\Controllers\Admin\BarangController;
 // use App\Http\Controllers\Master\RoleController;
 // use App\Http\Controllers\Master\UserController;
 // use App\Http\Controllers\Master\PermissionController;
@@ -63,31 +63,31 @@ Route::prefix('gudang')->middleware('permission:gudang.view')->group(function ()
          ->middleware('permission:gudang.delete');
 });
 
-    // // Barang routes - protected with permission
-    // Route::prefix('barang')->middleware('permission:barang.view')->group(function () {
-    //     Route::get('/', [BarangController::class, 'index']);
-    //     Route::get('/{id}', [BarangController::class, 'show']);
-    //     Route::post('/', [BarangController::class, 'store'])->middleware('permission:barang.create');
-    //     Route::put('/{id}', [BarangController::class, 'update'])->middleware('permission:barang.edit');
-    //     Route::delete('/{id}', [BarangController::class, 'destroy'])->middleware('permission:barang.delete');
-    // });
+    // Barang routes - protected with permission
+    Route::prefix('barang')->middleware('permission:barang.view')->group(function () {
+        Route::get('/', [BarangController::class, 'index']);
+        Route::get('/{id}', [BarangController::class, 'show']);
+        Route::post('/', [BarangController::class, 'store'])->middleware('permission:barang.create');
+        Route::put('/{id}', [BarangController::class, 'update'])->middleware('permission:barang.edit');
+        Route::delete('/{id}', [BarangController::class, 'destroy'])->middleware('permission:barang.delete');
+    });
 
-    // // Satuan routes - protected with permission
-    // Route::prefix('satuan')->middleware('permission:satuan.view')->group(function () {
-    //     Route::get('/', [SatuanController::class, 'index']);
-    //     Route::get('/{id}', [SatuanController::class, 'show']);
-    //     Route::post('/', [SatuanController::class, 'store'])->middleware('permission:satuan.create');
-    //     Route::put('/{id}', [SatuanController::class, 'update'])->middleware('permission:satuan.edit');
-    //     Route::delete('/{id}', [SatuanController::class, 'destroy'])->middleware('permission:satuan.delete');
-    // });
+    // Satuan routes - protected with permission
+    Route::prefix('satuan')->middleware('permission:satuan.view')->group(function () {
+        Route::get('/', [SatuanController::class, 'index']);
+        Route::get('/{id}', [SatuanController::class, 'show']);
+        Route::post('/', [SatuanController::class, 'store'])->middleware('permission:satuan.create');
+        Route::put('/{id}', [SatuanController::class, 'update'])->middleware('permission:satuan.edit');
+        Route::delete('/{id}', [SatuanController::class, 'destroy'])->middleware('permission:satuan.delete');
+    });
 
-    // // Jenis Barang routes - protected with permission
-    // Route::prefix('jenis-barang')->middleware('permission:jenis-barang.view')->group(function () {
-    //     Route::get('/', [JenisBarangController::class, 'index']);
-    //     Route::post('/', [JenisBarangController::class, 'store'])->middleware('permission:jenis-barang.create');
-    //     Route::put('/{id}', [JenisBarangController::class, 'update'])->middleware('permission:jenis-barang.edit');
-    //     Route::delete('/{id}', [JenisBarangController::class, 'destroy'])->middleware('permission:jenis-barang.delete');
-    // });
+    // Jenis Barang routes - protected with permission
+    Route::prefix('jenis-barang')->middleware('permission:jenis-barang.view')->group(function () {
+        Route::get('/', [JenisBarangController::class, 'index']);
+        Route::post('/', [JenisBarangController::class, 'store'])->middleware('permission:jenis-barang.create');
+        Route::put('/{id}', [JenisBarangController::class, 'update'])->middleware('permission:jenis-barang.edit');
+        Route::delete('/{id}', [JenisBarangController::class, 'destroy'])->middleware('permission:jenis-barang.delete');
+    });
 
     // // Role management routes - protected with permission
     // Route::prefix('roles')->middleware('permission:role.view')->group(function () {
