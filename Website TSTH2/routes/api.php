@@ -1,148 +1,128 @@
-    <?php
+<?php
 
-    // routes/api.php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\UserAccessController;
+use App\Http\Controllers\Admin\GudangController;
+// use App\Http\Controllers\Admin\SatuanController;
+// use App\Http\Controllers\Admin\JenisBarangController;
+// use App\Http\Controllers\Admin\BarangController;
+// use App\Http\Controllers\Master\RoleController;
+// use App\Http\Controllers\Master\UserController;
+// use App\Http\Controllers\Master\PermissionController;
 
-    use Illuminate\Support\Facades\Route;
-    use App\Http\Controllers\Admin\LoginController;
-    use App\Http\Controllers\Admin\GudangController;
-    use App\Http\Controllers\Admin\SatuanController;
-    use App\Http\Controllers\Admin\JenisBarangController;
-    use App\Http\Controllers\Admin\BarangController;
-    use App\Http\Controllers\Master\RoleController;
-    use App\Http\Controllers\Master\UserController;
-    use App\Http\Controllers\Master\AksesController;
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| is assigned the "api" middleware group. Enjoy building your API!
+|
+*/
 
-    // Authentication Routes
+// Public authentication routes
+Route::prefix('auth')->group(function () {
+    Route::post('/login', [AuthController::class, 'login']);
+    
+    // If you need registration
+    // Route::post('/register', [AuthController::class, 'register']);
+});
+
+// Protected routes with JWT authentication
+Route::middleware(['auth:api'])->group(function () {
+    // Authentication related routes
     Route::prefix('auth')->group(function () {
-        Route::post('/register', [LoginController::class, 'register']);
-        Route::post('/login', [LoginController::class, 'login']);
-
-        Route::middleware('auth:api')->group(function () {
-            Route::post('/logout', [LoginController::class, 'logout']);
-            Route::post('/refresh', [LoginController::class, 'refresh']);
-            Route::post('/profile', [LoginController::class, 'profile']);
-        });
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
+        Route::get('/me', [AuthController::class, 'me']);
     });
-
-    // Protected routes with dynamic role checking
-    Route::middleware(['auth:api', 'dynamic.role'])->group(function () {
-
-        // Profile
-        Route::get('/admin/profile/{user}', [UserController::class, 'profile']);
-        Route::post('/admin/updatePassword/{user}', [UserController::class, 'updatePassword']);
-        Route::post('/admin/updateProfile/{user}', [UserController::class, 'updateProfile']);
-        // Route::get('/admin/appreance/', [AppreanceController::class, 'index']);
-        // Route::post('/admin/appreance/{setting}', [AppreanceController::class, 'update']);
-
-        // Gudang routes
-        Route::middleware(['checkRoleUser:/gudang,submenu'])->group(function () {
-            Route::controller(GudangController::class)->group(function () {
-                Route::get('/gudang', 'index')->name('gudang.index');
-                Route::post('/gudang', 'store')->name('gudang.store');
-                Route::get('/gudang/{id}', 'show')->name('gudang.show');
-                Route::put('/gudang/{id}', 'update')->name('gudang.update');
-                Route::delete('/gudang/{id}', 'destroy')->name('gudang.destroy');
-            });
-        });
-
-        // Barang routes
-    Route::middleware(['checkRoleUser:/barang,submenu'])->group(function () {
-        Route::controller(BarangController::class)->group(function () {
-            Route::get('/barang', 'index')->name('barang.index');
-            Route::get('/barang/{id}', 'getBarang')->name('barang.get');
-            Route::post('/barang', 'store')->name('barang.store');
-            Route::put('/barang/{id}', 'update')->name('barang.update');
-            Route::delete('/barang/{id}', 'destroy')->name('barang.destroy');
-        });
+    Route::prefix('user')->group(function () {
+        Route::get('/permissions', [UserAccessController::class, 'getUserPermissions']);
+        Route::get('/accessible-routes', [UserAccessController::class, 'getAccessibleRoutes']);
+        Route::get('/full-access-info', [UserAccessController::class, 'getFullAccessInfo']);
     });
+    // // Profile routes
+    // Route::prefix('profile')->group(function () {
+    //     Route::get('/', [UserController::class, 'profile']);
+    //     Route::post('/update-password', [UserController::class, 'updatePassword']);
+    //     Route::post('/update-profile', [UserController::class, 'updateProfile']);
+    // });
 
+    // // Gudang routes - protected with permission
+// Gudang routes - protected with permission
+Route::prefix('gudang')->middleware('permission:gudang.view')->group(function () {
+    Route::get('/', [GudangController::class, 'index'])->name('gudang.index');
+    Route::post('/', [GudangController::class, 'store'])->name('gudang.store')
+         ->middleware('permission:gudang.create');
+    Route::get('/{id}', [GudangController::class, 'show'])->name('gudang.show');
+    Route::put('/{id}', [GudangController::class, 'update'])->name('gudang.update')
+         ->middleware('permission:gudang.edit');
+    Route::delete('/{id}', [GudangController::class, 'destroy'])->name('gudang.destroy')
+         ->middleware('permission:gudang.delete');
+});
 
-        // Satuan routes
-        Route::middleware(['checkRoleUser:/satuan,submenu'])->group(function () {
-            Route::controller(SatuanController::class)->group(function () {
-                Route::get('/satuan', 'index')->name('satuan.index');
-                Route::get('/satuan/{id}', 'show')->name('satuan.show');
-                Route::post('/satuan', 'store')->name('satuan.store');
-                Route::put('/satuan/{satuan}', 'update')->name('satuan.update');
-                Route::delete('/satuan/{satuan}', 'destroy')->name('satuan.destroy');
-            });
-        });
+    // // Barang routes - protected with permission
+    // Route::prefix('barang')->middleware('permission:barang.view')->group(function () {
+    //     Route::get('/', [BarangController::class, 'index']);
+    //     Route::get('/{id}', [BarangController::class, 'show']);
+    //     Route::post('/', [BarangController::class, 'store'])->middleware('permission:barang.create');
+    //     Route::put('/{id}', [BarangController::class, 'update'])->middleware('permission:barang.edit');
+    //     Route::delete('/{id}', [BarangController::class, 'destroy'])->middleware('permission:barang.delete');
+    // });
 
-        // Jenis Barang routes
-        Route::middleware(['checkRoleUser:/jenisbarang,submenu'])->group(function () {
-            Route::controller(JenisBarangController::class)->group(function () {
-                Route::get('/jenisbarang', 'show')->name('jenisbarang.show');
-                Route::post('/jenisbarang', 'store')->name('jenisbarang.store');
-                Route::put('/jenisbarang/{jenisbarang}', 'update')->name('jenisbarang.update');
-                Route::delete('/jenisbarang/{jenisbarang}', 'destroy')->name('jenisbarang.destroy');
-            });
-        });
+    // // Satuan routes - protected with permission
+    // Route::prefix('satuan')->middleware('permission:satuan.view')->group(function () {
+    //     Route::get('/', [SatuanController::class, 'index']);
+    //     Route::get('/{id}', [SatuanController::class, 'show']);
+    //     Route::post('/', [SatuanController::class, 'store'])->middleware('permission:satuan.create');
+    //     Route::put('/{id}', [SatuanController::class, 'update'])->middleware('permission:satuan.edit');
+    //     Route::delete('/{id}', [SatuanController::class, 'destroy'])->middleware('permission:satuan.delete');
+    // });
 
+    // // Jenis Barang routes - protected with permission
+    // Route::prefix('jenis-barang')->middleware('permission:jenis-barang.view')->group(function () {
+    //     Route::get('/', [JenisBarangController::class, 'index']);
+    //     Route::post('/', [JenisBarangController::class, 'store'])->middleware('permission:jenis-barang.create');
+    //     Route::put('/{id}', [JenisBarangController::class, 'update'])->middleware('permission:jenis-barang.edit');
+    //     Route::delete('/{id}', [JenisBarangController::class, 'destroy'])->middleware('permission:jenis-barang.delete');
+    // });
+
+    // // Role management routes - protected with permission
+    // Route::prefix('roles')->middleware('permission:role.view')->group(function () {
+    //     Route::get('/', [RoleController::class, 'index']);
+    //     Route::post('/', [RoleController::class, 'store'])->middleware('permission:role.create');
+    //     Route::get('/{id}', [RoleController::class, 'show']);
+    //     Route::put('/{id}', [RoleController::class, 'update'])->middleware('permission:role.edit');
+    //     Route::delete('/{id}', [RoleController::class, 'destroy'])->middleware('permission:role.delete');
         
-        // Role management routes
-        Route::middleware(['checkRoleUser:/roles,submenu'])->group(function () {
-            Route::controller(RoleController::class)->group(function () {
-                Route::get('/roles', 'index')->name('roles.index');
-                Route::post('/roles', 'store')->name('roles.store');
-                Route::get('/roles/{id}', 'show')->name('roles.show');
-                Route::put('/roles/{id}', 'update')->name('roles.update');
-                Route::delete('/roles/{id}', 'destroy')->name('roles.destroy');
+    //     // Role permissions
+    //     Route::post('/{id}/permissions', [RoleController::class, 'assignPermissions'])->middleware('permission:role.edit');
+    //     Route::get('/{id}/permissions', [RoleController::class, 'getPermissions']);
+    // });
 
-                // Additional role management endpoints
-                Route::post('/roles/{id}/permissions', 'assignPermissions')->name('roles.permissions.assign');
-                Route::get('/roles/{id}/permissions', 'getPermissions')->name('roles.permissions.get');
-                Route::get('/permissions', 'getAllPermissions')->name('permissions.all');
-            });
-        });
+    // // User management routes - protected with permission
+    // Route::prefix('users')->middleware('permission:user.view')->group(function () {
+    //     Route::get('/', [UserController::class, 'index']);
+    //     Route::post('/', [UserController::class, 'store'])->middleware('permission:user.create');
+    //     Route::get('/{id}', [UserController::class, 'show']);
+    //     Route::put('/{id}', [UserController::class, 'update'])->middleware('permission:user.edit');
+    //     Route::delete('/{id}', [UserController::class, 'destroy'])->middleware('permission:user.delete');
+        
+    //     // User roles and permissions
+    //     Route::post('/{id}/roles', [UserController::class, 'assignRoles'])->middleware('permission:user.edit');
+    //     Route::get('/{id}/roles', [UserController::class, 'getRoles']);
+    //     Route::post('/{id}/permissions', [UserController::class, 'assignPermissions'])->middleware('permission:user.edit');
+    //     Route::get('/{id}/permissions', [UserController::class, 'getPermissions']);
+    // });
 
-        // Akses routes
-        // Route::middleware(['checkRoleUser:akses,submenu'])->group(function () {
-        //     Route::controller(AksesController::class)->group(function () {
-        //         Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
-        //         Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role
-        //         Route::delete('/akses', 'removeAkses')->name('akses.remove'); // Hapus akses tertentu untuk role
-        //         Route::post('/akses/{role_id}/set-all', 'setAllAkses')->name('akses.set_all'); // Berikan semua akses ke role
-        //         Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
-        //     });
-        // });
-        Route::middleware(['checkRoleUser:1,othermenu'])->group(function () {
-
-            // Route::middleware(['checkRoleUser:2,othermenu'])->group(function () {
-            //     // Menu
-            //     Route::resource('/admin/menu', \App\Http\Controllers\Master\MenuController::class);
-            //     Route::post('/admin/menu/hapus', [MenuController::class, 'hapus']);
-            //     Route::get('/admin/menu/sortup/{sort}', [MenuController::class, 'sortup']);
-            //     Route::get('/admin/menu/sortdown/{sort}', [MenuController::class, 'sortdown']);
-            // });
-
-            Route::middleware(['checkRoleUser:3,othermenu'])->group(function () {
-                // Role
-                Route::resource('/admin/role', RoleController::class);
-                Route::get('/admin/role/show/', [RoleController::class, 'show'])->name('role.getrole');
-                Route::post('/admin/role/hapus', [RoleController::class, 'hapus']);
-            });
-
-            Route::middleware(['checkRoleUser:4,othermenu'])->group(function () {
-                // List User
-                Route::controller(UserController::class)->group(function () {
-                    Route::resource('/admin/user', UserController::class);
-                    Route::get('/admin/user/show/', [UserController::class, 'show'])->name('user.getuser');
-                    Route::post('/admin/user/hapus', [UserController::class, 'destroy']);
-                });
-            });
-
-            Route::middleware(['checkRoleUser:5,othermenu'])->group(function () {
-                Route::controller(AksesController::class)->group(function () {
-                    Route::get('/akses/{role_id}', 'getAksesByRole')->name('akses.get'); // Ambil akses berdasarkan role
-                    Route::post('/akses', 'addAkses')->name('akses.addAkses'); // Tambah akses untuk role
-                    Route::delete('/akses', 'removeAkses')->name('akses.remove'); // Hapus akses tertentu untuk role
-                    Route::post('/akses/{role_id}/set-all', 'setAllAkses')->name('akses.set_all'); // Berikan semua akses ke role
-                    Route::delete('/akses/{role_id}/unset-all', 'unsetAllAkses')->name('akses.unset_all'); // Hapus semua akses dari role
-                });
-                // Route::middleware(['checkRoleUser:6,othermenu'])->group(function () {
-                //     // Web
-                //     Route::resource('/admin/web', \App\Http\Controllers\Master\WebController::class);
-                // });
-            });
-        });
-    });
+    // // Permission management routes - protected with permission
+    // Route::prefix('permissions')->middleware('permission:permission.view')->group(function () {
+    //     Route::get('/', [PermissionController::class, 'index']);
+    //     Route::post('/', [PermissionController::class, 'store'])->middleware('permission:permission.create');
+    //     Route::get('/{id}', [PermissionController::class, 'show']);
+    //     Route::put('/{id}', [PermissionController::class, 'update'])->middleware('permission:permission.edit');
+    //     Route::delete('/{id}', [PermissionController::class, 'destroy'])->middleware('permission:permission.delete');
+    // });
+});

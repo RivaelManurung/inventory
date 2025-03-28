@@ -2,39 +2,59 @@
 
 namespace App\Models;
 
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Tymon\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Spatie\Permission\Models\Role;
+use Tymon\JWTAuth\Contracts\JWTSubject; // Tambahkan ini
 
-class UserModel extends Authenticatable implements JWTSubject
+class UserModel extends Authenticatable implements JWTSubject 
 {
-    use HasFactory, HasRoles;
+    use HasFactory, Notifiable, HasRoles;
 
-    protected $table = "tbl_user";
+    protected $table = 'tbl_user';
     protected $primaryKey = 'user_id';
+    
+    protected $guard_name = 'api'; // 🔹 Tambahkan ini
 
     protected $fillable = [
-        'role_id',
-        'user_nama',
         'user_nmlengkap',
+        'user_nama',
         'user_email',
         'user_password',
         'user_foto',
+        'role_id'
     ];
 
     protected $hidden = [
         'user_password',
+        'remember_token',
     ];
 
-    // Relationship to the Role model
-    public function role()
+    protected function casts(): array
     {
-        return $this->belongsTo(Role::class, 'role_id');
+        return [
+            'email_verified_at' => 'datetime',
+            'user_password' => 'hashed',
+        ];
     }
 
-    // Implement JWTSubject methods
+    public function getAuthIdentifierName()
+    {
+        return 'user_id';
+    }
+
+    public function getAuthPassword()
+    {
+        return $this->user_password;
+    }
+
+    public function getRememberTokenName()
+    {
+        return 'remember_token';
+    }
+
+    // 🔹 Implementasikan JWTSubject
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -44,10 +64,8 @@ class UserModel extends Authenticatable implements JWTSubject
     {
         return [];
     }
-
-    // Override default password attribute
-    public function getAuthPassword()
+    public function getMorphClass()
     {
-        return $this->user_password;
+        return 'App\Models\UserModel'; // Samakan dengan yang ada di database
     }
 }
