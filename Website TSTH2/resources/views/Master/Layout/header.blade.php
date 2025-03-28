@@ -3,7 +3,8 @@
     <div class="page-header-content d-lg-flex">
         <div class="d-flex">
             <h4 class="page-title mb-0">
-                @yield('page-title', 'Dashboard') - <span class="fw-normal">@yield('title', 'Dashboard')</span>
+                @yield('page-title', 'Dashboard') 
+                {{-- - <span class="fw-normal">@yield('title', 'Dashboard')</span> --}}
             </h4>
 
             <a href="#page_header"

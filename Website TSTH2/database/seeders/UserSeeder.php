@@ -57,7 +57,10 @@ class UserSeeder extends Seeder
             'permission.view',
             'permission.create',
             'permission.edit',
-            'permission.delete'
+            'permission.delete',
+            
+            // Assign Permission
+            'assign.permission' // Tambahan agar superadmin bisa assign permission
         ];
 
         // Buat permissions
@@ -72,7 +75,7 @@ class UserSeeder extends Seeder
         $superAdminRole = Role::firstOrCreate([
             'name' => 'superadmin',
             'guard_name' => 'api'
-        ])->givePermissionTo(Permission::all());
+        ])->givePermissionTo(Permission::all()); // Superadmin dapat semua izin
 
         $adminRole = Role::firstOrCreate([
             'name' => 'admin', 

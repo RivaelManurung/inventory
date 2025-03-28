@@ -1,134 +1,186 @@
 @extends('Master.Layout.app')
 @section('page-title', 'Data Barang')
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
 @section('breadcrumb')
     <a href="{{ url('/dashboard') }}" class="breadcrumb-item"><i class="ph-house"></i> Home</a>
     <span class="breadcrumb-item active">Data Barang</span>
 @endsection
 @section('content')
-<!-- ROW -->
-<div class="container mt-5">
-    <h2 class="mb-4">Data Barang</h2>
-    <a href="#" class="btn btn-success mb-3"><i class="bi bi-plus-lg"></i> Tambah Barang</a>
-    <table class="table table-bordered text-center">
-        <thead class="table-dark">
-            <tr>
-                <th>No</th>
-                <th>Gambar</th>
-                <th>Barcode</th>
-                <th>Kode Barang</th>
-                <th>Nama Barang</th>
-                <th>Jenis</th>
-                <th>Harga</th>
-                <th>Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <script>
-                let barang = [
-                    {id: 1, gambar: "https://via.placeholder.com/50", kode: "BRG001", nama: "Beras", jenis: "Makanan", harga: 12000},
-                    {id: 2, gambar: "https://via.placeholder.com/50", kode: "BRG002", nama: "Minyak Goreng", jenis: "Sembako", harga: 15000},
-                    {id: 3, gambar: "https://via.placeholder.com/50", kode: "BRG003", nama: "Gula Pasir", jenis: "Makanan", harga: 14000},
-                ];
-                barang.forEach((item, index) => {
-                    document.write(`
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td><img src="${item.gambar}" alt="Gambar" width="50"></td>
-                            <td><svg id="barcode${item.id}"></svg></td>
-                            <td>${item.kode}</td>
-                            <td>${item.nama}</td>
-                            <td>${item.jenis}</td>
-                            <td>Rp${item.harga.toLocaleString()}</td>
-                            <td>
-                                <button class="btn btn-info"><i class="bi bi-pencil"></i> Edit</button>
-                                <button class="btn btn-danger" onclick="confirmDelete(${item.id})"><i class="bi bi-trash"></i> Hapus</button>
-                            </td>
-                        </tr>
-                    `);
-                });
-            </script>
-        </tbody>
-    </table>
-</div>
 
-<script>
-    barang.forEach(item => {
-        JsBarcode(`#barcode${item.id}`, item.kode, {
-            format: "CODE128",
-            width: 1.5,
-            height: 40,
-            displayValue: false
-        });
-    });
-    function confirmDelete(id) {
-        alert("Apakah Anda yakin ingin menghapus barang dengan ID: " + id + "?");
-    }
-</script>
-<!-- END ROW -->
-@endsection
-{{-- @extends('Master.Layout.app')
-@section('page-title', 'Data Barang')
-@section('breadcrumb')
-    <a href="{{ url('/dashboard') }}" class="breadcrumb-item"><i class="ph-house"></i> Home</a>
-    <span class="breadcrumb-item active">Data Barang</span>
-@endsection
-@section('content')
-<!-- ROW -->
-<div class="row row-sm">
-    <div class="col-lg-12">
-        <div class="card">
-            <div class="card-header justify-content-between">
-                <h3 class="card-title">Data</h3>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-bordered text-nowrap border-bottom">
-                        <thead>
+<!-- Page content -->
+<div class="content-wrapper">
+
+    <!-- Inner content -->
+    <div class="content-inner">
+        <!-- Content area -->
+        <div class="content">
+
+            <!-- Basic datatable -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Daftar Barang</h5>
+                </div>
+
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <a href="#" class="btn btn-primary"><i class="ph-plus-circle me-2"></i>Tambah Barang</a>
+                        <div class="d-flex">
+                            <input type="text" class="form-control me-2" placeholder="Cari barang..." id="search-input">
+                            <button class="btn btn-light" id="search-button"><i class="ph-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <table class="table datatable-basic">
+                    <thead>
+                        <tr>
                             <th>No</th>
                             <th>Gambar</th>
                             <th>Barcode</th>
                             <th>Kode Barang</th>
                             <th>Nama Barang</th>
                             <th>Jenis</th>
-                            <th>Satuan</th>
-                            <th>Gudang</th>
-                            <th>Stok</th>
                             <th>Harga</th>
-                            <th>Action</th>
-                        </thead>
-                        <tbody>
-                            @php
+                            <th>Stok</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php
                             $barang = [
-                                ['kode' => 'BRG-001', 'nama' => 'Beras', 'jenis' => 'Makanan', 'satuan' => 'Kg', 'gudang' => 'Gudang A', 'stok' => 100, 'harga' => 15000, 'gambar' => 'no_image.png', 'barcode' => '-'],
-                                ['kode' => 'BRG-002', 'nama' => 'Minyak Goreng', 'jenis' => 'Makanan', 'satuan' => 'Liter', 'gudang' => 'Gudang B', 'stok' => 50, 'harga' => 20000, 'gambar' => 'no_image.png', 'barcode' => '-'],
+                                [
+                                    'id' => 1,
+                                    'gambar' => 'pupuk_kompos.jpg',
+                                    'kode' => 'PUP-001',
+                                    'nama' => 'Pupuk Kompos',
+                                    'jenis' => 'Pupuk',
+                                    'harga' => 15000,
+                                    'stok' => 80
+                                ],
+                                // ... your other data items ...
                             ];
-                            @endphp
-                            @foreach($barang as $key => $item)
-                            <tr>
-                                <td>{{ $key + 1 }}</td>
-                                <td><img src="{{ asset('storage/barang/'.$item['gambar']) }}" alt="Gambar" width="50"></td>
-                                <td>{!! $item['barcode'] !!}</td>
-                                <td>{{ $item['kode'] }}</td>
-                                <td>{{ $item['nama'] }}</td>
-                                <td>{{ $item['jenis'] }}</td>
-                                <td>{{ $item['satuan'] }}</td>
-                                <td>{{ $item['gudang'] }}</td>
-                                <td>{{ $item['stok'] }}</td>
-                                <td>{{ number_format($item['harga'], 0, ',', '.') }}</td>
-                                <td>
-                                    <a class="btn btn-info">Edit</a>
-                                    <a class="btn btn-danger">Delete</a>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            $perPage = 10; // Items per page
+                            $currentPage = request()->get('page', 1);
+                            $offset = ($currentPage - 1) * $perPage;
+                            $paginatedItems = array_slice($barang, $offset, $perPage);
+                            $totalItems = count($barang);
+                        @endphp
+
+                        @foreach($paginatedItems as $key => $item)
+                        <tr>
+                            <td>{{ $offset + $key + 1 }}</td>
+                            <td>
+                                <img src="{{ asset('storage/barang/'.$item['gambar']) }}" alt="{{ $item['nama'] }}" class="img-fluid rounded" width="60">
+                            </td>
+                            <td>
+                                <svg id="barcode{{ $item['id'] }}"></svg>
+                                <script>
+                                    JsBarcode(`#barcode{{ $item['id'] }}`, "{{ $item['kode'] }}", {
+                                        format: "CODE128",
+                                        width: 1.5,
+                                        height: 40,
+                                        displayValue: false
+                                    });
+                                </script>
+                            </td>
+                            <td>{{ $item['kode'] }}</td>
+                            <td>{{ $item['nama'] }}</td>
+                            <td>{{ $item['jenis'] }}</td>
+                            <td>Rp{{ number_format($item['harga'], 0, ',', '.') }}</td>
+                            <td>
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ $item['stok'] }}</span>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-inline-flex">
+                                    <a href="#" class="text-body mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit">
+                                        <i class="ph-pen"></i>
+                                    </a>
+                                    <a href="#" class="text-body mx-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Hapus" onclick="confirmDelete({{ $item['id'] }})">
+                                        <i class="ph-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div class="card-footer d-flex justify-content-between">
+                    <div class="showing-items">
+                        Menampilkan {{ $offset + 1 }} sampai {{ min($offset + $perPage, $totalItems) }} dari {{ $totalItems }} item
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-flat">
+                            <li class="page-item {{ $currentPage == 1 ? 'disabled' : '' }}">
+                                <a class="page-link" href="?page={{ $currentPage - 1 }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            
+                            @for ($i = 1; $i <= ceil($totalItems / $perPage); $i++)
+                                <li class="page-item {{ $i == $currentPage ? 'active' : '' }}">
+                                    <a class="page-link" href="?page={{ $i }}">{{ $i }}</a>
+                                </li>
+                            @endfor
+                            
+                            <li class="page-item {{ $currentPage == ceil($totalItems / $perPage) ? 'disabled' : '' }}">
+                                <a class="page-link" href="?page={{ $currentPage + 1 }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
+                <!-- /Pagination -->
             </div>
+            <!-- /basic datatable -->
+
         </div>
+        <!-- /content area -->
+
     </div>
+    <!-- /inner content -->
+
 </div>
-<!-- END ROW -->
-@endsection --}}
+<!-- /page content -->
+
+<script>
+    function confirmDelete(id) {
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Data barang akan dihapus secara permanen!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal',
+            buttonsStyling: false,
+            customClass: {
+                confirmButton: 'btn btn-danger',
+                cancelButton: 'btn btn-light ms-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Terhapus!',
+                    text: 'Data barang telah dihapus.',
+                    buttonsStyling: false,
+                    confirmButtonText: 'OK',
+                    customClass: {
+                        confirmButton: 'btn btn-success'
+                    }
+                });
+            }
+        });
+    }
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+
+@endsection

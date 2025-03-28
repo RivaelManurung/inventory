@@ -15,6 +15,8 @@ Route::view('/login', 'Admin.auth.login')->name('login');
 Route::view('/dashboard', 'Admin.Dashboard.dashboard')->name('dashboard');
 Route::view('/transaksi', 'Admin.Barang.Transaksi')->name('transaksi');
 Route::view('/jenisbarang', 'Admin.JenisBarang.index')->name('jenisbarang');
+Route::view('/satuan', 'Admin.Satuan.index')->name('satuan');
+
 
 
 // Logout (hanya menghapus token di frontend)
