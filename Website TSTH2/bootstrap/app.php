@@ -13,9 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
-            'jwt.auth' => \App\Http\Middleware\JWTMiddleware::class,
+            // 'jwt.auth' => \App\Http\Middleware\JWTMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'auth.api' => \App\Http\Middleware\AuthenticateAPI::class, 
+            'jwt.auth'=> \App\Http\Middleware\JWTWebMiddleware::class,
+
         ]);
         
         $middleware->group('api', [

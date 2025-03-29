@@ -11,8 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tbl_transaksi', function (Blueprint $table) {
-            $table->id();
+        Schema::create('tbl_status_barang', function (Blueprint $table) {
+            $table->increments('status_id');
+            $table->string('nama_status')->unique();
+            $table->string('deskripsi')->nullable();
             $table->timestamps();
         });
     }
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tbl_transaksi');
+        Schema::dropIfExists('tbl_status_barang');
     }
 };

@@ -15,8 +15,25 @@ class UserSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Daftar semua permission
+        // Daftar semua permission untuk seluruh tabel
         $permissions = [
+            // User Management
+            'user.view',
+            'user.create',
+            'user.edit',
+            'user.delete',
+            
+            // Role & Permission Management
+            'role.view',
+            'role.create',
+            'role.edit',
+            'role.delete',
+            'permission.view',
+            'permission.create',
+            'permission.edit',
+            'permission.delete',
+            'assign.permission',
+            
             // Gudang
             'gudang.view',
             'gudang.create',
@@ -29,38 +46,66 @@ class UserSeeder extends Seeder
             'barang.edit',
             'barang.delete',
             
-            // Satuan
-            'satuan.view',
-            'satuan.create',
-            'satuan.edit',
-            'satuan.delete',
-            
             // Jenis Barang
             'jenis-barang.view',
             'jenis-barang.create',
             'jenis-barang.edit',
             'jenis-barang.delete',
             
-            // User Management
-            'user.view',
-            'user.create',
-            'user.edit',
-            'user.delete',
+            // Satuan
+            'satuan.view',
+            'satuan.create',
+            'satuan.edit',
+            'satuan.delete',
             
-            // Role Management
-            'role.view',
-            'role.create',
-            'role.edit',
-            'role.delete',
+            // Status Barang
+            'status-barang.view',
+            'status-barang.create',
+            'status-barang.edit',
+            'status-barang.delete',
             
-            // Permission Management
-            'permission.view',
-            'permission.create',
-            'permission.edit',
-            'permission.delete',
+            // Barang Gudang (Stok)
+            'stok.view',
+            'stok.create',
+            'stok.edit',
+            'stok.delete',
             
-            // Assign Permission
-            'assign.permission' // Tambahan agar superadmin bisa assign permission
+            // Jenis Transaksi
+            'jenis-transaksi.view',
+            'jenis-transaksi.create',
+            'jenis-transaksi.edit',
+            'jenis-transaksi.delete',
+            
+            // Transaksi
+            'transaksi.view',
+            'transaksi.create',
+            'transaksi.edit',
+            'transaksi.delete',
+            
+            // Detail Transaksi
+            'transaksi-detail.view',
+            'transaksi-detail.create',
+            'transaksi-detail.edit',
+            'transaksi-detail.delete',
+            
+            // Peminjaman
+            'peminjaman.view',
+            'peminjaman.create',
+            'peminjaman.edit',
+            'peminjaman.delete',
+            'peminjaman.approve',
+            'peminjaman.cancel',
+            
+            // Pengembalian
+            'pengembalian.view',
+            'pengembalian.create',
+            'pengembalian.edit',
+            'pengembalian.delete',
+            
+            // Laporan
+            'laporan.view',
+            'laporan.generate',
+            'laporan.export'
         ];
 
         // Buat permissions
@@ -75,15 +120,44 @@ class UserSeeder extends Seeder
         $superAdminRole = Role::firstOrCreate([
             'name' => 'superadmin',
             'guard_name' => 'api'
-        ])->givePermissionTo(Permission::all()); // Superadmin dapat semua izin
+        ])->givePermissionTo(Permission::all());
 
         $adminRole = Role::firstOrCreate([
             'name' => 'admin', 
             'guard_name' => 'api'
         ])->givePermissionTo([
+            // Gudang
             'gudang.view', 'gudang.create', 'gudang.edit',
+            
+            // Barang
             'barang.view', 'barang.create', 'barang.edit',
+            
+            // Jenis Barang
+            'jenis-barang.view', 'jenis-barang.create',
+            
+            // Satuan
             'satuan.view', 'satuan.create',
+            
+            // Status Barang
+            'status-barang.view',
+            
+            // Stok
+            'stok.view', 'stok.edit',
+            
+            // Transaksi
+            'transaksi.view', 'transaksi.create',
+            'transaksi-detail.view',
+            
+            // Peminjaman
+            'peminjaman.view', 'peminjaman.create', 'peminjaman.approve',
+            
+            // Pengembalian
+            'pengembalian.view', 'pengembalian.create',
+            
+            // Laporan
+            'laporan.view', 'laporan.generate',
+            
+            // User
             'user.view'
         ]);
 
@@ -91,58 +165,69 @@ class UserSeeder extends Seeder
             'name' => 'manager',
             'guard_name' => 'api'
         ])->givePermissionTo([
-            'gudang.view', 'gudang.create',
-            'barang.view', 'barang.create',
-            'satuan.view'
+            'gudang.view',
+            'barang.view',
+            'jenis-barang.view',
+            'satuan.view',
+            'status-barang.view',
+            'stok.view',
+            'transaksi.view',
+            'transaksi-detail.view',
+            'peminjaman.view',
+            'pengembalian.view',
+            'laporan.view'
         ]);
 
         $operatorRole = Role::firstOrCreate([
             'name' => 'operator',
             'guard_name' => 'api'
         ])->givePermissionTo([
-            'gudang.view',
-            'barang.view'
+            'barang.view',
+            'stok.view',
+            'transaksi.view',
+            'peminjaman.view',
+            'pengembalian.view'
         ]);
 
         // Buat user dan assign role
         $users = [
             [
-                'username' => 'superadmin',
-                'name' => 'Super Administrator',
-                'email' => 'superadmin@example.com',
-                'password' => 'password123',
+                'user_nama' => 'superadmin',
+                'user_nmlengkap' => 'Super Administrator',
+                'user_email' => 'superadmin@example.com',
+                'user_password' => 'password123',
                 'role' => 'superadmin'
             ],
             [
-                'username' => 'admin',
-                'name' => 'Administrator',
-                'email' => 'admin@example.com',
-                'password' => 'password123',
+                'user_nama' => 'admin',
+                'user_nmlengkap' => 'Administrator',
+                'user_email' => 'admin@example.com',
+                'user_password' => 'password123',
                 'role' => 'admin'
             ],
             [
-                'username' => 'manager',
-                'name' => 'Manager Gudang',
-                'email' => 'manager@example.com',
-                'password' => 'password123',
+                'user_nama' => 'manager',
+                'user_nmlengkap' => 'Manager Gudang',
+                'user_email' => 'manager@example.com',
+                'user_password' => 'password123',
                 'role' => 'manager'
             ],
             [
-                'username' => 'operator',
-                'name' => 'Operator Gudang',
-                'email' => 'operator@example.com',
-                'password' => 'password123',
+                'user_nama' => 'operator',
+                'user_nmlengkap' => 'Operator Gudang',
+                'user_email' => 'operator@example.com',
+                'user_password' => 'password123',
                 'role' => 'operator'
             ]
         ];
 
         foreach ($users as $userData) {
             $user = UserModel::firstOrCreate(
-                ['user_nama' => $userData['username']],
+                ['user_nama' => $userData['user_nama']],
                 [
-                    'user_nmlengkap' => $userData['name'],
-                    'user_email' => $userData['email'],
-                    'user_password' => Hash::make($userData['password']),
+                    'user_nmlengkap' => $userData['user_nmlengkap'],
+                    'user_email' => $userData['user_email'],
+                    'user_password' => Hash::make($userData['user_password']),
                 ]
             );
             $user->assignRole($userData['role']);

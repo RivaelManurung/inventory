@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             JenisBarangSeeder::class,
             BarangSeeder::class,
             GudangSeeder::class,
+            JenisTransaksiSeeder::class,
+            StatusBarangSeeder::class,
+            
         ]);
     }
 }

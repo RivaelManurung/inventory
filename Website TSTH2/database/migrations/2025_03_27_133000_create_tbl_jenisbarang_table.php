@@ -12,9 +12,9 @@ return new class extends Migration
             $table->increments('jenisbarang_id');
             $table->string('jenisbarang_nama');
             $table->string('jenisbarang_slug')->unique();
-            $table->text('jenisbarang_ket')->nullable(); // Changed to text for longer descriptions
+            $table->text('jenisbarang_ket')->nullable(); 
             $table->timestamps();
-            $table->softDeletes(); // Added soft delete
+            $table->softDeletes(); 
         });
     }
 

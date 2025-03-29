@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('satuan_slug')->unique();
             $table->string('satuan_keterangan')->nullable();
             $table->timestamps();
-            $table->softDeletes(); // Added soft delete
+            $table->softDeletes(); 
         });
     }
 

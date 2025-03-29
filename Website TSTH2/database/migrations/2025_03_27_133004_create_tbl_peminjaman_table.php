@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
             $table->timestamps();
             $table->softDeletes();
-
+        
             $table->foreign('barang_id')->references('barang_id')->on('tbl_barang');
             $table->foreign('gudang_id')->references('gudang_id')->on('tbl_gudang');
             $table->foreign('user_id_peminjam')->references('user_id')->on('tbl_user');

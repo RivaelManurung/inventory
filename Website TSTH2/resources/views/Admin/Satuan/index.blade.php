@@ -22,7 +22,7 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <form action="{{ url('/satuan') }}" method="GET">
+                            <form action="{{ route('satuan.index') }}" method="GET">
                                 <div class="input-group">
                                     <input type="text" class="form-control" name="search" placeholder="Cari satuan..." value="{{ request('search') }}">
                                     <div class="input-group-append">
@@ -35,41 +35,34 @@
                         </div>
                     </div>
 
-                    @if($satuan->count() > 0)
+                    @if($satuans->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover">
                                 <thead>
                                     <tr>
                                         <th>No</th>
-                                        <th>Kode Satuan</th>
                                         <th>Nama Satuan</th>
-                                        <th>Deskripsi</th>
-                                        <th>Status</th>
+                                        <th>Slug</th>
+                                        <th>Keterangan</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($satuan as $key => $item)
+                                    @foreach($satuans as $key => $satuan)
                                     <tr>
-                                        <td>{{ $satuan->firstItem() + $key }}</td>
-                                        <td>{{ $item->kode }}</td>
-                                        <td>{{ $item->nama }}</td>
-                                        <td>{{ $item->deskripsi ?? '-' }}</td>
-                                        <td>
-                                            <span class="badge badge-{{ $item->status == 'Aktif' ? 'success' : 'danger' }}">
-                                                {{ $item->status }}
-                                            </span>
-                                        </td>
+                                        <td>{{ $satuans->firstItem() + $key }}</td>
+                                        <td>{{ $satuan->satuan_nama }}</td>
+                                        <td>{{ $satuan->satuan_slug }}</td>
+                                        <td>{{ $satuan->satuan_keterangan ?? '-' }}</td>
                                         <td>
                                             <button class="btn btn-sm btn-warning edit-satuan" 
-                                                data-id="{{ $item->id }}"
-                                                data-kode="{{ $item->kode }}"
-                                                data-nama="{{ $item->nama }}"
-                                                data-deskripsi="{{ $item->deskripsi }}"
-                                                data-status="{{ $item->status }}">
+                                                data-id="{{ $satuan->satuan_id }}"
+                                                data-nama="{{ $satuan->satuan_nama }}"
+                                                data-slug="{{ $satuan->satuan_slug }}"
+                                                data-keterangan="{{ $satuan->satuan_keterangan }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('satuan.destroy', $item->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('satuan.destroy', $satuan->satuan_id) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-danger confirm-delete">
@@ -85,11 +78,11 @@
 
                         <div class="row">
                             <div class="col-md-6">
-                                <p>Menampilkan {{ $satuan->firstItem() }} sampai {{ $satuan->lastItem() }} dari {{ $satuan->total() }} data</p>
+                                <p>Menampilkan {{ $satuans->firstItem() }} sampai {{ $satuans->lastItem() }} dari {{ $satuans->total() }} data</p>
                             </div>
                             <div class="col-md-6">
                                 <div class="float-right">
-                                    {{ $satuan->links() }}
+                                    {{ $satuans->links() }}
                                 </div>
                             </div>
                         </div>
@@ -118,29 +111,16 @@
                 @csrf
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="kode">Kode Satuan</label>
-                        <input type="text" class="form-control" id="kode" name="kode" required>
+                        <label for="satuan_nama">Nama Satuan</label>
+                        <input type="text" class="form-control" id="satuan_nama" name="satuan_nama" required>
                     </div>
                     <div class="form-group">
-                        <label for="nama">Nama Satuan</label>
-                        <input type="text" class="form-control" id="nama" name="nama" required>
+                        <label for="satuan_slug">Slug</label>
+                        <input type="text" class="form-control" id="satuan_slug" name="satuan_slug" required>
                     </div>
                     <div class="form-group">
-                        <label for="deskripsi">Deskripsi</label>
-                        <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="status" id="statusAktif" value="Aktif" checked>
-                                <label class="form-check-label" for="statusAktif">Aktif</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="status" id="statusNonaktif" value="Nonaktif">
-                                <label class="form-check-label" for="statusNonaktif">Nonaktif</label>
-                            </div>
-                        </div>
+                        <label for="satuan_keterangan">Keterangan</label>
+                        <textarea class="form-control" id="satuan_keterangan" name="satuan_keterangan" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -167,29 +147,16 @@
                 @method('PUT')
                 <div class="modal-body">
                     <div class="form-group">
-                        <label for="edit_kode">Kode Satuan</label>
-                        <input type="text" class="form-control" id="edit_kode" name="kode" required>
+                        <label for="edit_satuan_nama">Nama Satuan</label>
+                        <input type="text" class="form-control" id="edit_satuan_nama" name="satuan_nama" required>
                     </div>
                     <div class="form-group">
-                        <label for="edit_nama">Nama Satuan</label>
-                        <input type="text" class="form-control" id="edit_nama" name="nama" required>
+                        <label for="edit_satuan_slug">Slug</label>
+                        <input type="text" class="form-control" id="edit_satuan_slug" name="satuan_slug" required>
                     </div>
                     <div class="form-group">
-                        <label for="edit_deskripsi">Deskripsi</label>
-                        <textarea class="form-control" id="edit_deskripsi" name="deskripsi" rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="status" id="edit_statusAktif" value="Aktif">
-                                <label class="form-check-label" for="edit_statusAktif">Aktif</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="status" id="edit_statusNonaktif" value="Nonaktif">
-                                <label class="form-check-label" for="edit_statusNonaktif">Nonaktif</label>
-                            </div>
-                        </div>
+                        <label for="edit_satuan_keterangan">Keterangan</label>
+                        <textarea class="form-control" id="edit_satuan_keterangan" name="satuan_keterangan" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -208,22 +175,15 @@ $(document).ready(function() {
     // Edit Satuan Modal
     $('.edit-satuan').click(function() {
         var id = $(this).data('id');
-        var kode = $(this).data('kode');
         var nama = $(this).data('nama');
-        var deskripsi = $(this).data('deskripsi');
-        var status = $(this).data('status');
+        var slug = $(this).data('slug');
+        var keterangan = $(this).data('keterangan');
 
-        $('#edit_kode').val(kode);
-        $('#edit_nama').val(nama);
-        $('#edit_deskripsi').val(deskripsi);
-        
-        if(status === 'Aktif') {
-            $('#edit_statusAktif').prop('checked', true);
-        } else {
-            $('#edit_statusNonaktif').prop('checked', true);
-        }
+        $('#edit_satuan_nama').val(nama);
+        $('#edit_satuan_slug').val(slug);
+        $('#edit_satuan_keterangan').val(keterangan);
 
-        $('#editSatuanForm').attr('action', '/satuan/' + id);
+        $('#editSatuanForm').attr('action', '/admin/satuan/' + id);
         $('#editSatuanModal').modal('show');
     });
 
@@ -246,6 +206,13 @@ $(document).ready(function() {
                 form.submit();
             }
         });
+    });
+
+    // Auto generate slug from nama satuan
+    $('#satuan_nama').on('keyup', function() {
+        var nama = $(this).val();
+        var slug = nama.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+        $('#satuan_slug').val(slug);
     });
 
     // Show success message

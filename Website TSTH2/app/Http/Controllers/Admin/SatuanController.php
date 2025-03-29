@@ -9,23 +9,26 @@ use Illuminate\Support\Facades\Validator;
 
 class SatuanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $satuan = Satuan::query()
-            ->when(request('search'), function($query) {
-                $query->where('nama', 'like', '%'.request('search').'%')
-                      ->orWhere('kode', 'like', '%'.request('search').'%');
+        $search = $request->input('search');
+        
+        $satuans = Satuan::query()
+            ->when($search, function($query) use ($search) {
+                $query->where('satuan_nama', 'like', '%'.$search.'%')
+                      ->orWhere('satuan_slug', 'like', '%'.$search.'%');
             })
+            ->orderBy('satuan_nama')
             ->paginate(10);
 
-        if (request()->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'status' => true,
-                'data' => $satuan
+                'data' => $satuans
             ]);
         }
 
-        return view('Admin.Satuan.index', compact('satuan'));
+        return view('admin.satuan.index', compact('satuans', 'search'));
     }
 
     public function show($id)
@@ -48,10 +51,9 @@ class SatuanController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'kode' => 'required|string|unique:satuan',
-            'nama' => 'required|string|unique:satuan',
-            'deskripsi' => 'nullable|string',
-            'status' => 'required|in:Aktif,Nonaktif'
+            'satuan_nama' => 'required|string|unique:tbl_satuan',
+            'satuan_slug' => 'required|string|unique:tbl_satuan',
+            'satuan_keterangan' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -67,7 +69,11 @@ class SatuanController extends Controller
                 ->withInput();
         }
 
-        $satuan = Satuan::create($request->all());
+        $satuan = Satuan::create([
+            'satuan_nama' => $request->satuan_nama,
+            'satuan_slug' => $request->satuan_slug,
+            'satuan_keterangan' => $request->satuan_keterangan,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -98,10 +104,9 @@ class SatuanController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'kode' => 'sometimes|string|unique:satuan,kode,'.$id,
-            'nama' => 'sometimes|string|unique:satuan,nama,'.$id,
-            'deskripsi' => 'nullable|string',
-            'status' => 'sometimes|in:Aktif,Nonaktif'
+            'satuan_nama' => 'required|string|unique:tbl_satuan,satuan_nama,'.$id.',satuan_id',
+            'satuan_slug' => 'required|string|unique:tbl_satuan,satuan_slug,'.$id.',satuan_id',
+            'satuan_keterangan' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -117,7 +122,11 @@ class SatuanController extends Controller
                 ->withInput();
         }
 
-        $satuan->update($request->all());
+        $satuan->update([
+            'satuan_nama' => $request->satuan_nama,
+            'satuan_slug' => $request->satuan_slug,
+            'satuan_keterangan' => $request->satuan_keterangan,
+        ]);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -145,6 +154,19 @@ class SatuanController extends Controller
             
             return redirect()->back()
                 ->with('error', 'Satuan tidak ditemukan');
+        }
+
+        // Cek apakah satuan digunakan di barang
+        if ($satuan->barangs()->count() > 0) {
+            if (request()->wantsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Satuan tidak dapat dihapus karena sudah digunakan'
+                ], 422);
+            }
+            
+            return redirect()->back()
+                ->with('error', 'Satuan tidak dapat dihapus karena sudah digunakan');
         }
 
         $satuan->delete();

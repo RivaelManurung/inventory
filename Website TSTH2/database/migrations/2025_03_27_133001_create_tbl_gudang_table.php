@@ -14,7 +14,7 @@ return new class extends Migration
             $table->string('gudang_slug')->unique();
             $table->text('gudang_deskripsi')->nullable();
             $table->timestamps();
-            $table->softDeletes();  
+            $table->softDeletes();
         });
     }
 

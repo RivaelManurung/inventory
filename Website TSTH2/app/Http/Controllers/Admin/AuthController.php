@@ -8,56 +8,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cookie;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
-    /**
-     * @OA\Post(
-     *     path="/api/login",
-     *     tags={"Authentication"},
-     *     summary="Login user",
-     *     operationId="login",
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"username","password"},
-     *             @OA\Property(property="username", type="string", example="admin"),
-     *             @OA\Property(property="password", type="string", example="password123")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Login successful",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="boolean", example=true),
-     *             @OA\Property(property="message", type="string", example="Login berhasil"),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="token", type="string", example="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."),
-     *                 @OA\Property(property="user", type="object",
-     *                     @OA\Property(property="user_id", type="integer", example=1),
-     *                     @OA\Property(property="user_nama", type="string", example="admin"),
-     *                     @OA\Property(property="user_nmlengkap", type="string", example="Administrator"),
-     *                     @OA\Property(property="role", type="string", example="superadmin")
-     *                 )
-     *             )
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Validation error"
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Invalid credentials"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server error"
-     *     )
-     * )
-     */
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -75,7 +32,7 @@ class AuthController extends Controller
 
         try {
             $credentials = $request->only('username', 'password');
-            
+
             // Attempt authentication with custom username field
             if (!$token = auth()->attempt(['user_nama' => $credentials['username'], 'password' => $credentials['password']])) {
                 Log::warning('Login failed for username: ' . $credentials['username']);
@@ -89,7 +46,6 @@ class AuthController extends Controller
             Log::info('User logged in', ['user_id' => $user->user_id]);
 
             return $this->respondWithToken($token, $user);
-
         } catch (JWTException $e) {
             Log::error('JWT Error: ' . $e->getMessage());
             return response()->json([
@@ -121,40 +77,18 @@ class AuthController extends Controller
         ]);
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/logout",
-     *     tags={"Authentication"},
-     *     summary="Logout user",
-     *     operationId="logout",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Logout successful"
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server error"
-     *     )
-     * )
-     */
     public function logout()
     {
         try {
             $user = auth()->user();
             auth()->logout();
-            
+
             Log::info('User logged out', ['user_id' => $user->user_id]);
-            
+
             return response()->json([
                 'status' => true,
                 'message' => 'Logout berhasil'
             ]);
-
         } catch (JWTException $e) {
             Log::error('Logout error: ' . $e->getMessage());
             return response()->json([
@@ -164,36 +98,12 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * @OA\Get(
-     *     path="/api/me",
-     *     tags={"Authentication"},
-     *     summary="Get current user data",
-     *     operationId="me",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Success"
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="User not found"
-     *     ),
-     *     @OA\Response(
-     *         response=500,
-     *         description="Server error"
-     *     )
-     * )
-     */
+
     public function me()
     {
         try {
             $user = auth()->user();
-            
+
             if (!$user) {
                 return response()->json([
                     'status' => false,
@@ -215,7 +125,6 @@ class AuthController extends Controller
                     ]
                 ]
             ]);
-            
         } catch (\Exception $e) {
             Log::error('Get user error: ' . $e->getMessage());
             return response()->json([
@@ -246,14 +155,13 @@ class AuthController extends Controller
     {
         try {
             $newToken = auth()->refresh();
-            
+
             return response()->json([
                 'status' => true,
                 'data' => [
                     'token' => $newToken
                 ]
             ]);
-            
         } catch (JWTException $e) {
             Log::error('Refresh token error: ' . $e->getMessage());
             return response()->json([
@@ -262,4 +170,90 @@ class AuthController extends Controller
             ], 401);
         }
     }
+    // Di AuthController.php
+    public function showLoginForm()
+    {
+        return view('Admin.auth.login');
+    }
+
+    // public function webLogin(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'username' => 'required|string',
+    //         'password' => 'required|string|min:6',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return redirect()->back()
+    //             ->withErrors($validator)
+    //             ->withInput();
+    //     }
+
+    //     try {
+    //         $credentials = $request->only('username', 'password');
+
+    //         // Authenticate menggunakan JWT
+    //         if (!$token = auth()->attempt([
+    //             'user_nama' => $credentials['username'],
+    //             'password' => $credentials['password']
+    //         ])) {
+    //             throw new \Exception('Invalid credentials');
+    //         }
+
+    //         // Simpan token di session dan cookie
+    //         $request->session()->put('jwt_token', $token);
+
+    //         return redirect()->route('dashboard')
+    //             ->withCookie(cookie(
+    //                 'jwt_token',
+    //                 $token,
+    //                 60 * 24 * 7,  // 7 hari
+    //                 null,
+    //                 null,
+    //                 false,
+    //                 true      // HttpOnly
+    //             ));
+    //     } catch (\Exception $e) {
+    //         return back()->with('error', 'Login failed: ' . $e->getMessage());
+    //     }
+    // }
+
+    // public function webLogout(Request $request)
+    // {
+    //     try {
+    //         $token = $request->session()->get('jwt_token');
+
+    //         if ($token) {
+    //             // Invalidate token JWT
+    //             auth()->logout();
+
+    //             // Hapus semua data session
+    //             $request->session()->invalidate();
+    //             $request->session()->regenerateToken();
+    //         }
+
+    //         // Hapus cookie
+    //         $response = redirect('/login')
+    //             ->withCookie(Cookie::forget('jwt_token'));
+
+    //         // Handle JSON response for API
+    //         if ($request->wantsJson()) {
+    //             return response()->json([
+    //                 'status' => true,
+    //                 'message' => 'Logout berhasil'
+    //             ]);
+    //         }
+
+    //         // Handle web response
+    //         return $response->with('success', 'Anda telah logout');
+    //     } catch (\Exception $e) {
+    //         if ($request->wantsJson()) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'Gagal logout'
+    //             ], 500);
+    //         }
+    //         return redirect()->back()->with('error', 'Logout gagal');
+    //     }
+    // }
 }

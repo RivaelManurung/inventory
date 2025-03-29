@@ -1,13 +1,13 @@
 <?php
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Peminjaman extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'tbl_peminjaman';
     protected $primaryKey = 'peminjaman_id';
@@ -34,6 +34,11 @@ class Peminjaman extends Model
 
     public function peminjam()
     {
-        return $this->belongsTo(User::class, 'user_id_peminjam', 'user_id');
+        return $this->belongsTo(UserModel::class, 'user_id_peminjam');
+    }
+
+    public function pengembalian()
+    {
+        return $this->hasOne(Pengembalian::class, 'peminjaman_id');
     }
 }
