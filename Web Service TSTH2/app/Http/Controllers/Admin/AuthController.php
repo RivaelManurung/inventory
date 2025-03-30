@@ -3,257 +3,83 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Http\Requests\LoginRequest;
+use App\Response\Response;
+use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Cookie;
-use Tymon\JWTAuth\Facades\JWTAuth;
-use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
+    protected $auth_service;
 
-    public function login(Request $request)
+    public function __construct(AuthService $authService)
     {
-        $validator = Validator::make($request->all(), [
-            'username' => 'required|string',
-            'password' => 'required|string|min:6',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Validasi gagal',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $credentials = $request->only('username', 'password');
-
-            // Attempt authentication with custom username field
-            if (!$token = auth()->attempt(['user_nama' => $credentials['username'], 'password' => $credentials['password']])) {
-                Log::warning('Login failed for username: ' . $credentials['username']);
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Username atau password salah'
-                ], 401);
-            }
-
-            $user = auth()->user();
-            Log::info('User logged in', ['user_id' => $user->user_id]);
-
-            return $this->respondWithToken($token, $user);
-        } catch (JWTException $e) {
-            Log::error('JWT Error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Tidak bisa membuat token'
-            ], 500);
-        }
+        $this->auth_service = $authService;
     }
 
-    /**
-     * Format token response
-     */
-    protected function respondWithToken($token, $user)
-    {
+    public function login(LoginRequest $request)
+{
+    try {
+        $result = $this->auth_service->login($request->validated());
+        
         return response()->json([
-            'status' => true,
+            'success' => true,
+            'status_code' => 200,
             'message' => 'Login berhasil',
-            'data' => [
-                'token' => $token,
-                'user' => [
-                    'user_id' => $user->user_id,
-                    'user_nama' => $user->user_nama,
-                    'user_nmlengkap' => $user->user_nmlengkap,
-                    'user_email' => $user->user_email,
-                    'role' => $user->roles->first()->name ?? null,
-                    'permissions' => $user->getPermissionsViaRoles()->pluck('name')
-                ]
-            ]
+            'token' => $result['token'],
+            'token_type' => $result['token_type'],
+            'expires_in' => $result['expires_in'],
+            'user' => $result['user'] // Ubah dari 'data' ke 'user'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'status_code' => $e->getCode() ?: 500,
+            'message' => $e->getMessage()
         ]);
     }
-
-    public function logout()
+}
+    public function logout(): JsonResponse
     {
         try {
-            $user = auth()->user();
-            auth()->logout();
-
-            Log::info('User logged out', ['user_id' => $user->user_id]);
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Logout berhasil'
-            ]);
-        } catch (JWTException $e) {
-            Log::error('Logout error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Gagal logout'
-            ], 500);
+            $this->auth_service->logout();
+            return Response::success('Logout berhasil', null, 200);
+        } catch (\Throwable $th) {
+            return Response::error(
+                'Gagal logout',
+                $th->getMessage(),
+                500
+            );
         }
     }
 
-
-    public function me()
+    public function me(): JsonResponse
     {
         try {
-            $user = auth()->user();
-
-            if (!$user) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'User tidak ditemukan'
-                ], 404);
-            }
-
-            return response()->json([
-                'status' => true,
-                'data' => [
-                    'user' => [
-                        'user_id' => $user->user_id,
-                        'user_nama' => $user->user_nama,
-                        'user_nmlengkap' => $user->user_nmlengkap,
-                        'user_email' => $user->user_email,
-                        'user_foto' => $user->user_foto,
-                        'role' => $user->roles->first()->name ?? null,
-                        'permissions' => $user->getPermissionsViaRoles()->pluck('name')
-                    ]
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Get user error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Terjadi kesalahan server'
-            ], 500);
+            $user = $this->auth_service->getAuthenticatedUser();
+            return Response::success('Data user', $user, 200);
+        } catch (\Throwable $th) {
+            return Response::error(
+                'Gagal mengambil data user',
+                $th->getMessage(),
+                500
+            );
         }
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/refresh",
-     *     tags={"Authentication"},
-     *     summary="Refresh JWT token",
-     *     operationId="refreshToken",
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Token refreshed"
-     *     ),
-     *     @OA\Response(
-     *         response=401,
-     *         description="Unauthenticated"
-     *     )
-     * )
-     */
-    public function refresh()
+    public function refresh(): JsonResponse
     {
         try {
-            $newToken = auth()->refresh();
-
-            return response()->json([
-                'status' => true,
-                'data' => [
-                    'token' => $newToken
-                ]
-            ]);
-        } catch (JWTException $e) {
-            Log::error('Refresh token error: ' . $e->getMessage());
-            return response()->json([
-                'status' => false,
-                'message' => 'Token tidak valid'
-            ], 401);
+            $token = $this->auth_service->refreshToken();
+            return Response::success('Token refreshed', ['token' => $token], 200);
+        } catch (\Throwable $th) {
+            return Response::error(
+                'Gagal refresh token',
+                $th->getMessage(),
+                401
+            );
         }
     }
-    // Di AuthController.php
-    public function showLoginForm()
-    {
-        return view('Admin.auth.login');
-    }
-
-    // public function webLogin(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'username' => 'required|string',
-    //         'password' => 'required|string|min:6',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return redirect()->back()
-    //             ->withErrors($validator)
-    //             ->withInput();
-    //     }
-
-    //     try {
-    //         $credentials = $request->only('username', 'password');
-
-    //         // Authenticate menggunakan JWT
-    //         if (!$token = auth()->attempt([
-    //             'user_nama' => $credentials['username'],
-    //             'password' => $credentials['password']
-    //         ])) {
-    //             throw new \Exception('Invalid credentials');
-    //         }
-
-    //         // Simpan token di session dan cookie
-    //         $request->session()->put('jwt_token', $token);
-
-    //         return redirect()->route('dashboard')
-    //             ->withCookie(cookie(
-    //                 'jwt_token',
-    //                 $token,
-    //                 60 * 24 * 7,  // 7 hari
-    //                 null,
-    //                 null,
-    //                 false,
-    //                 true      // HttpOnly
-    //             ));
-    //     } catch (\Exception $e) {
-    //         return back()->with('error', 'Login failed: ' . $e->getMessage());
-    //     }
-    // }
-
-    // public function webLogout(Request $request)
-    // {
-    //     try {
-    //         $token = $request->session()->get('jwt_token');
-
-    //         if ($token) {
-    //             // Invalidate token JWT
-    //             auth()->logout();
-
-    //             // Hapus semua data session
-    //             $request->session()->invalidate();
-    //             $request->session()->regenerateToken();
-    //         }
-
-    //         // Hapus cookie
-    //         $response = redirect('/login')
-    //             ->withCookie(Cookie::forget('jwt_token'));
-
-    //         // Handle JSON response for API
-    //         if ($request->wantsJson()) {
-    //             return response()->json([
-    //                 'status' => true,
-    //                 'message' => 'Logout berhasil'
-    //             ]);
-    //         }
-
-    //         // Handle web response
-    //         return $response->with('success', 'Anda telah logout');
-    //     } catch (\Exception $e) {
-    //         if ($request->wantsJson()) {
-    //             return response()->json([
-    //                 'status' => false,
-    //                 'message' => 'Gagal logout'
-    //             ], 500);
-    //         }
-    //         return redirect()->back()->with('error', 'Logout gagal');
-    //     }
-    // }
 }

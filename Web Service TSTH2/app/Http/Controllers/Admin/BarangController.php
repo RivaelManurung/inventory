@@ -1,127 +1,104 @@
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Barang;
+use App\Http\Resources\BarangResource;
+use App\Response\Response;
+use App\Services\BarangService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class BarangController extends Controller
 {
-    public function index()
+    protected $barang_service;
+
+    public function __construct(BarangService $barangService)
     {
-        $barang = Barang::all();
-        return response()->json([
-            'status' => true,
-            'data' => $barang
-        ]);
+        $this->barang_service = $barangService;
     }
 
-    public function show($id)
+    public function index(): JsonResponse
     {
-        $barang = Barang::find($id);
-        
-        if (!$barang) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Barang tidak ditemukan'
-            ], 404);
+        try {
+            $barang = $this->barang_service->getAllBarang();
+            return Response::success('Get all data successfully', BarangResource::collection($barang), 200);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
         }
-
-        return response()->json([
-            'status' => true,
-            'data' => $barang
-        ]);
     }
 
-    public function store(Request $request)
+    public function show(int $id): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
+        try {
+            $barang = $this->barang_service->getDetailBarang($id);
+            return Response::success('Get data successfully', new BarangResource($barang), 200);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
+        }
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
             'barang_nama' => 'required|string',
-            'barang_kode' => 'required|string|unique:tbl_barang',
             'barang_harga' => 'required|numeric',
             'satuan_id' => 'required|exists:tbl_satuan,satuan_id',
-            'jenisbarang_id' => 'required|exists:tbl_jenis_barang,jenisbarang_id'
+            'jenisbarang_id' => 'required|exists:tbl_jenisbarang,jenisbarang_id',
+            'klasifikasi_barang' => 'required|in:sekali_pakai,berulang'
         ]);
-    
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
+
+        try {
+            $barang = $this->barang_service->createBarang($request->all());
+            return Response::success('Barang created successfully', new BarangResource($barang), 201);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
         }
-    
-        $data = $request->only([
-            'jenisbarang_id',
-            'satuan_id',
-            'barang_kode',
-            'barang_nama',
-            'barang_harga'
-        ]);
-        
-        $data['barang_slug'] = Str::slug($request->barang_nama);
-        $data['user_id'] = auth()->id();
-    
-        $barang = Barang::create($data);
-    
-        return response()->json([
-            'status' => true,
-            'message' => 'Barang berhasil ditambahkan',
-            'data' => $barang
-        ], 201);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id): JsonResponse
     {
-        $barang = Barang::find($id);
-        
-        if (!$barang) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Barang tidak ditemukan'
-            ], 404);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nama' => 'sometimes|string',
-            'kode' => 'sometimes|string|unique:barang,kode,'.$id,
-            'harga' => 'sometimes|numeric',
-            'stok' => 'sometimes|integer'
+        $request->validate([
+            'barang_nama' => 'sometimes|string',
+            'barang_harga' => 'sometimes|numeric',
+            'satuan_id' => 'sometimes|exists:tbl_satuan,satuan_id',
+            'jenisbarang_id' => 'sometimes|exists:tbl_jenisbarang,jenisbarang_id',
+            'klasifikasi_barang' => 'sometimes|in:sekali_pakai,berulang'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => false,
-                'errors' => $validator->errors()
-            ], 422);
+        try {
+            $barang = $this->barang_service->updateBarang($request->all(), $id);
+            return Response::success('Barang updated successfully', new BarangResource($barang), 200);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
         }
-
-        $barang->update($request->all());
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Barang berhasil diperbarui',
-            'data' => $barang
-        ]);
     }
 
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
     {
-        $barang = Barang::find($id);
-        
-        if (!$barang) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Barang tidak ditemukan'
-            ], 404);
+        try {
+            $this->barang_service->deleteBarang($id);
+            return Response::success('Barang deleted successfully', null, 200);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
         }
+    }
 
-        $barang->delete();
+    public function getBarcode(int $id): JsonResponse
+    {
+        try {
+            $barcode = $this->barang_service->generateBarangBarcode($id);
+            return Response::success('Barcode generated successfully', $barcode, 200);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
+        }
+    }
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Barang berhasil dihapus'
-        ]);
+    public function downloadBarcode(int $id)
+    {
+        try {
+            return $this->barang_service->downloadBarangBarcode($id);
+        } catch (\Throwable $th) {
+            return Response::error('Internal server error', $th->getMessage(), 500);
+        }
     }
 }

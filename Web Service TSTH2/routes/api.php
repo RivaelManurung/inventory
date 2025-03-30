@@ -20,8 +20,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
     });
 
-       // Prefix 'user' hanya bisa diakses oleh superadmin
-       Route::prefix('user')->middleware(['auth:api', 'role:superadmin'])->group(function () {
+    // Prefix 'user' hanya bisa diakses oleh superadmin
+    Route::prefix('user')->middleware(['auth:api', 'role:superadmin'])->group(function () {
         Route::get('/permissions', [UserAccessController::class, 'getUserPermissions']);
         Route::get('/accessible-routes', [UserAccessController::class, 'getAccessibleRoutes']);
         Route::get('/full-access-info', [UserAccessController::class, 'getFullAccessInfo']);
@@ -45,6 +45,10 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/{id}', [BarangController::class, 'show']);
         Route::put('/{id}', [BarangController::class, 'update'])->middleware('permission:barang.edit');
         Route::delete('/{id}', [BarangController::class, 'destroy'])->middleware('permission:barang.delete');
+
+        // Tambahkan route baru khusus untuk barcode
+        Route::get('/{id}/barcode', [BarangController::class, 'getBarcode'])->middleware('permission:barang.view');
+        Route::get('/{id}/barcode/download', [BarangController::class, 'downloadBarcode'])->middleware('permission:barang.view');
     });
 
     Route::middleware('permission:satuan.view')->prefix('satuan')->group(function () {
@@ -61,6 +65,4 @@ Route::middleware(['auth:api'])->group(function () {
         Route::put('/{id}', [JenisBarangController::class, 'update'])->middleware('permission:jenis-barang.edit');
         Route::delete('/{id}', [JenisBarangController::class, 'destroy'])->middleware('permission:jenis-barang.delete');
     });
-
-   
 });

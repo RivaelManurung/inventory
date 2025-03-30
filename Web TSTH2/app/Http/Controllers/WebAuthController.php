@@ -1,10 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Web;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Log;
 
 class WebAuthController extends Controller
 {
@@ -24,32 +25,110 @@ class WebAuthController extends Controller
     {
         $credentials = $request->validate([
             'username' => 'required|string',
-            'password' => 'required|string|min:6'
+            'password' => 'required|string'
         ]);
 
-        $result = $this->authService->login($credentials);
+        $authResult = $this->authService->login($credentials);
+        // dd($authResult);
 
-        if ($result['status']) {
-            $request->session()->regenerate();
-            return redirect()->intended('/dashboard')
-                ->with('success', 'Login berhasil');
-        }
+        Log::info('User logged in', ['user' => $authResult ?? null]);
 
-        return back()
-            ->withInput()
-            ->withErrors([
-                'message' => $result['message'] ?? 'Login gagal'
-            ]);
+        // return response()->json($authResult);
+        return redirect('/dashboard');
     }
+
+    // WebAuthController.php
+    // public function login(Request $request)
+    // {
+    //     $credentials = $request->validate([
+    //         'username' => 'required',
+    //         'password' => 'required'
+    //     ]);
+
+    //     $authResult = $this->authService->login($credentials);
+
+    //     if (!$authResult['success']) {
+    //         return back()->withErrors(['message' => $authResult['message']]);
+    //     }
+
+    //     // Debug before redirect
+    //     \Log::debug('Login successful', [
+    //         'has_token' => !empty($authResult['token']),
+    //         'token' => $authResult['token'],
+    //         'expires_in' => $authResult['expires_in'] ?? 1440
+    //     ]);
+
+    //     // Set cookie JWT and redirect
+    //     return redirect()->route('dashboard')
+    //         ->withCookie(cookie(
+    //             'jwt_token', 
+    //             $authResult['token'], 
+    //             $authResult['expires_in'] ?? 1440, // minutes
+    //             null, // path
+    //             null, // domain
+    //             false, // secure
+    //             true, // httpOnly
+    //             false, // raw
+    //             'Strict' // sameSite
+    //         ))
+    //         ->with('success', 'Login successful');
+    // }
+
+    public function dashboard(Request $request)
+    {
+        $user = $this->authService->getAuthenticatedUser();
+        return view('Admin.Dashboard.dashboard', compact('user'));
+    }
+
+
 
     public function logout(Request $request)
     {
-        $result = $this->authService->logout();
+        $token = $request->bearerToken();
+        $logoutResult = ['success' => false, 'message' => 'No token found'];
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($token) {
+            $logoutResult = $this->authService->logout($token);
+        }
 
-        return redirect('/login')
-            ->with('status', $result['message']);
+        Log::info('User logged out', ['token' => $token]);
+
+        return response()->json($logoutResult);
+    }
+
+    public function getCurrentUser(Request $request)
+    {
+        $token = $request->bearerToken();
+
+        if (!$token) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Not authenticated'
+            ], 401);
+        }
+
+        $user = $this->authService->getAuthenticatedUser($token);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get user data'
+            ], 401);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => [
+                'id' => $user['user_id'] ?? $user['id'] ?? null,
+                'username' => $user['user_nama'] ?? $user['username'] ?? null,
+                'fullname' => $user['user_nmlengkap'] ?? $user['fullname'] ?? null,
+                'email' => $user['user_email'] ?? $user['email'] ?? null,
+                'role' => $user['role'] ?? null,
+                'permissions' => $user['permissions'] ?? []
+            ],
+            'login_duration' => isset($user['last_login'])
+                ? now()->diffInMinutes($user['last_login']) . ' minutes'
+                : 'Unknown'
+        ]);
     }
 }

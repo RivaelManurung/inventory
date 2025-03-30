@@ -1,59 +1,56 @@
 <?php
 
+use App\Http\Middleware\JwtAuth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\WebAuthController;
-use App\Http\Controllers\Web\DashboardController;
-use App\Http\Controllers\Admin\BarangController;
-use App\Http\Controllers\Admin\SatuanController;
-use App\Http\Controllers\Admin\JenisBarangController;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\WebAuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\BarangKeluarController; // Add this line
 
 // Public Routes
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login'); // Redirect ke halaman login
 });
 
 // Authentication Routes
-Route::middleware(['guest'])->group(function () {
+Route::middleware('guest')->group(function () {
     Route::controller(WebAuthController::class)->group(function () {
         Route::get('/login', 'showLoginForm')->name('login');
-        Route::post('/login', 'login');
+        Route::post('/login', 'login')->name('login.post');
     });
 });
 
 // Authenticated Routes
-Route::middleware(['jwt.auth'])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::middleware(JwtAuth::class)->group(function () {
+    // Dashboard Route
+    Route::get('/dashboard', [WebAuthController::class, 'dashboard'])->name('dashboard');
 
-    // Logout
-    Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
-
-    // Master Data
-    Route::prefix('master')->group(function () {
-        // Jenis Barang
-        Route::resource('jenis-barang', JenisBarangController::class)->except(['show']);
-        Route::get('jenis-barang/datatables', [JenisBarangController::class, 'datatables'])
-            ->name('jenis-barang.datatables');
-
-        // Satuan
-        Route::resource('satuan', SatuanController::class)->except(['show']);
-        Route::get('satuan/datatables', [SatuanController::class, 'datatables'])
-            ->name('satuan.datatables');
-
-        // Barang
-        Route::resource('barang', BarangController::class);
-        Route::get('barang/datatables', [BarangController::class, 'datatables'])
-            ->name('barang.datatables');
+    // Barang Keluar Routes
+    Route::prefix('barang-keluar')->group(function () {
+        Route::get('/', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
+        Route::post('/', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+        Route::get('/create', [BarangKeluarController::class, 'create'])->name('barang-keluar.create');
+        Route::get('/{id}', [BarangKeluarController::class, 'show'])->name('barang-keluar.show');
+        Route::put('/{id}', [BarangKeluarController::class, 'update'])->name('barang-keluar.update');
+        Route::delete('/{id}', [BarangKeluarController::class, 'destroy'])->name('barang-keluar.destroy');
+        Route::get('/{id}/edit', [BarangKeluarController::class, 'edit'])->name('barang-keluar.edit');
     });
+    
+    // Satuan Routes
+    Route::prefix('satuan')->group(function () {
+        Route::get('/', [SatuanController::class, 'index'])->name('satuan.index');
+        Route::post('/', [SatuanController::class, 'store'])->name('satuan.store');
+        Route::get('/create', [SatuanController::class, 'create'])->name('satuan.create');
+        Route::get('/{satuan}', [SatuanController::class, 'show'])->name('satuan.show');
+        Route::put('/{satuan}', [SatuanController::class, 'update'])->name('satuan.update');
+        Route::delete('/{satuan}', [SatuanController::class, 'destroy'])->name('satuan.destroy');
+        Route::get('/{satuan}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
+    });
+
+    // Logout Route
+    Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 });
 
 // Fallback route
 Route::fallback(function () {
     return view('errors.404');
-});
+})->name('fallback');

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('klasifikasi_barang', ['sekali_pakai', 'berulang']);
             $table->string('barang_kode')->unique();
             $table->string('barang_nama', 100);
-            $table->string('barang_slug')->unique();
+            $table->string('barang_slug');
             $table->decimal('barang_harga', 12, 2);
             $table->string('barang_gambar')->nullable();
             $table->unsignedInteger('user_id')->nullable();
