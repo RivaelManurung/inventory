@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SatuanResource;
@@ -28,12 +28,23 @@ class SatuanController extends Controller
         }
 
         $satuans = $response['data'] ?? [];
-        
+
         return view('admin.satuan.index', [
             'satuans' => $satuans,
             'search' => $search,
             'pagination' => $satuans['meta'] ?? null
         ]);
+    }
+
+    public function getUpdates(Request $request)
+    {
+        $lastUpdate = $request->input('last_update');
+        $search = $request->input('search', '');
+        $perPage = $request->input('per_page', 10);
+
+        $response = $this->satuanService->getUpdates($lastUpdate, $search, $perPage);
+
+        return response()->json($response);
     }
 
     public function store(Request $request)

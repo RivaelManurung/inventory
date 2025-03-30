@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BarangKeluarController; // Add this line
+use App\Http\Controllers\SatuanController;
 
 // Public Routes
 Route::get('/', function () {
@@ -24,16 +25,16 @@ Route::middleware(JwtAuth::class)->group(function () {
     // Dashboard Route
     Route::get('/dashboard', [WebAuthController::class, 'dashboard'])->name('dashboard');
 
-    // Barang Keluar Routes
-    Route::prefix('barang-keluar')->group(function () {
-        Route::get('/', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
-        Route::post('/', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
-        Route::get('/create', [BarangKeluarController::class, 'create'])->name('barang-keluar.create');
-        Route::get('/{id}', [BarangKeluarController::class, 'show'])->name('barang-keluar.show');
-        Route::put('/{id}', [BarangKeluarController::class, 'update'])->name('barang-keluar.update');
-        Route::delete('/{id}', [BarangKeluarController::class, 'destroy'])->name('barang-keluar.destroy');
-        Route::get('/{id}/edit', [BarangKeluarController::class, 'edit'])->name('barang-keluar.edit');
-    });
+    // // Barang Keluar Routes
+    // Route::prefix('barang-keluar')->group(function () {
+    //     Route::get('/', [BarangKeluarController::class, 'index'])->name('barang-keluar.index');
+    //     Route::post('/', [BarangKeluarController::class, 'store'])->name('barang-keluar.store');
+    //     Route::get('/create', [BarangKeluarController::class, 'create'])->name('barang-keluar.create');
+    //     Route::get('/{id}', [BarangKeluarController::class, 'show'])->name('barang-keluar.show');
+    //     Route::put('/{id}', [BarangKeluarController::class, 'update'])->name('barang-keluar.update');
+    //     Route::delete('/{id}', [BarangKeluarController::class, 'destroy'])->name('barang-keluar.destroy');
+    //     Route::get('/{id}/edit', [BarangKeluarController::class, 'edit'])->name('barang-keluar.edit');
+    // });
     
     // Satuan Routes
     Route::prefix('satuan')->group(function () {
