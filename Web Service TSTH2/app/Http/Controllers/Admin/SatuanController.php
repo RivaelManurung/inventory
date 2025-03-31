@@ -3,182 +3,121 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Satuan;
+use App\Http\Resources\SatuanResource;
+use App\Services\SatuanService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class SatuanController extends Controller
 {
-    public function index(Request $request)
+    protected $satuanService;
+
+    public function __construct(SatuanService $satuanService)
     {
-        $search = $request->input('search');
-        
-        $satuans = Satuan::query()
-            ->when($search, function($query) use ($search) {
-                $query->where('satuan_nama', 'like', '%'.$search.'%')
-                      ->orWhere('satuan_slug', 'like', '%'.$search.'%');
-            })
-            ->orderBy('satuan_nama')
-            ->paginate(10);
-
-        if ($request->wantsJson()) {
-            return response()->json([
-                'status' => true,
-                'data' => $satuans
-            ]);
-        }
-
-        return view('admin.satuan.index', compact('satuans', 'search'));
+        $this->satuanService = $satuanService;
     }
 
-    public function show($id)
+    public function index(Request $request)
     {
-        $satuan = Satuan::find($id);
+        $result = $this->satuanService->getAllSatuans([
+            'search' => $request->input('search'),
+            'per_page' => $request->input('per_page', 10)
+        ]);
 
-        if (!$satuan) {
+        if (!$result['success']) {
             return response()->json([
-                'status' => false,
-                'message' => 'Satuan tidak ditemukan'
-            ], 404);
+                'success' => false,
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], 500);
         }
 
         return response()->json([
-            'status' => true,
-            'data' => $satuan
+            'success' => true,
+            'data' => SatuanResource::collection($result['data']),
+            'meta' => [
+                'current_page' => $result['data']->currentPage(),
+                'from' => $result['data']->firstItem(),
+                'to' => $result['data']->lastItem(),
+                'total' => $result['data']->total(),
+                'last_page' => $result['data']->lastPage(),
+                'per_page' => $result['data']->perPage(),
+            ],
+            'message' => $result['message']
         ]);
     }
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'satuan_nama' => 'required|string|unique:tbl_satuan',
-            'satuan_slug' => 'required|string|unique:tbl_satuan',
-            'satuan_keterangan' => 'nullable|string',
-        ]);
+        $result = $this->satuanService->createSatuan($request->all());
 
-        if ($validator->fails()) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => false,
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-            
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $satuan = Satuan::create([
-            'satuan_nama' => $request->satuan_nama,
-            'satuan_slug' => $request->satuan_slug,
-            'satuan_keterangan' => $request->satuan_keterangan,
-        ]);
-
-        if ($request->wantsJson()) {
+        if (!$result['success']) {
             return response()->json([
-                'status' => true,
-                'message' => 'Satuan berhasil ditambahkan',
-                'data' => $satuan
-            ], 201);
+                'success' => false,
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], 422);
         }
 
-        return redirect()->route('satuan.index')
-            ->with('success', 'Satuan berhasil ditambahkan');
+        return response()->json([
+            'success' => true,
+            'data' => new SatuanResource($result['data']),
+            'message' => $result['message']
+        ], 201);
+    }
+
+    public function show($id)
+    {
+        $result = $this->satuanService->getSatuanById($id);
+
+        if (!$result['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message']
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => new SatuanResource($result['data']),
+            'message' => $result['message']
+        ]);
     }
 
     public function update(Request $request, $id)
     {
-        $satuan = Satuan::find($id);
+        $result = $this->satuanService->updateSatuan($id, $request->all());
 
-        if (!$satuan) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Satuan tidak ditemukan'
-                ], 404);
-            }
-            
-            return redirect()->back()
-                ->with('error', 'Satuan tidak ditemukan');
-        }
-
-        $validator = Validator::make($request->all(), [
-            'satuan_nama' => 'required|string|unique:tbl_satuan,satuan_nama,'.$id.',satuan_id',
-            'satuan_slug' => 'required|string|unique:tbl_satuan,satuan_slug,'.$id.',satuan_id',
-            'satuan_keterangan' => 'nullable|string',
-        ]);
-
-        if ($validator->fails()) {
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => false,
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-            
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        $satuan->update([
-            'satuan_nama' => $request->satuan_nama,
-            'satuan_slug' => $request->satuan_slug,
-            'satuan_keterangan' => $request->satuan_keterangan,
-        ]);
-
-        if ($request->wantsJson()) {
+        if (!$result['success']) {
+            $statusCode = $result['message'] === 'Satuan tidak ditemukan' ? 404 : 422;
             return response()->json([
-                'status' => true,
-                'message' => 'Satuan berhasil diperbarui',
-                'data' => $satuan
-            ]);
+                'success' => false,
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null
+            ], $statusCode);
         }
 
-        return redirect()->route('satuan.index')
-            ->with('success', 'Satuan berhasil diperbarui');
+        return response()->json([
+            'success' => true,
+            'data' => new SatuanResource($result['data']),
+            'message' => $result['message']
+        ]);
     }
 
     public function destroy($id)
     {
-        $satuan = Satuan::find($id);
+        $result = $this->satuanService->deleteSatuan($id);
 
-        if (!$satuan) {
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Satuan tidak ditemukan'
-                ], 404);
-            }
-            
-            return redirect()->back()
-                ->with('error', 'Satuan tidak ditemukan');
-        }
-
-        // Cek apakah satuan digunakan di barang
-        if ($satuan->barangs()->count() > 0) {
-            if (request()->wantsJson()) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Satuan tidak dapat dihapus karena sudah digunakan'
-                ], 422);
-            }
-            
-            return redirect()->back()
-                ->with('error', 'Satuan tidak dapat dihapus karena sudah digunakan');
-        }
-
-        $satuan->delete();
-
-        if (request()->wantsJson()) {
+        if (!$result['success']) {
+            $statusCode = $result['message'] === 'Satuan tidak ditemukan' ? 404 : 422;
             return response()->json([
-                'status' => true,
-                'message' => 'Satuan berhasil dihapus'
-            ]);
+                'success' => false,
+                'message' => $result['message']
+            ], $statusCode);
         }
 
-        return redirect()->route('satuan.index')
-            ->with('success', 'Satuan berhasil dihapus');
+        return response()->json([
+            'success' => true,
+            'message' => $result['message']
+        ]);
     }
 }

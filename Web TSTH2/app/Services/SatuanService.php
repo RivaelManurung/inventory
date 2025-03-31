@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Session;
 
 class SatuanService
 {
-    public function getAll($search = null, $perPage = 10)
+    public function getAll($search = '', $perPage = 10)
     {
         try {
             $token = Session::get('jwt_token');
@@ -24,25 +24,28 @@ class SatuanService
             $responseData = $response->json();
 
             if (!$response->successful() || !($responseData['success'] ?? false)) {
-                Log::error('Failed to get satuan data', [
+                Log::error('Failed to get satuan list', [
                     'status' => $response->status(),
                     'response' => $responseData
                 ]);
                 return [
                     'success' => false,
-                    'message' => $responseData['message'] ?? 'Gagal mengambil data satuan',
-                    'errors' => $responseData['errors'] ?? null
+                    'message' => $responseData['message'] ?? 'Gagal mengambil data satuan'
                 ];
             }
 
+            // Convert each array item to an object before passing to SatuanResource
+            $data = collect($responseData['data'])->map(function ($item) {
+                return (object)$item;
+            });
+
             return [
                 'success' => true,
-                'data' => SatuanResource::collection($responseData['data']),
+                'data' => SatuanResource::collection($data),
                 'meta' => $responseData['meta'] ?? null
             ];
-
         } catch (\Exception $e) {
-            Log::error('Get satuan error: ' . $e->getMessage());
+            Log::error('Get satuan list error: ' . $e->getMessage());
             return [
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat mengambil data satuan'
@@ -81,7 +84,6 @@ class SatuanService
                 'meta' => $responseData['meta'] ?? null,
                 'last_update' => now()->toDateTimeString()
             ];
-
         } catch (\Exception $e) {
             Log::error('Get satuan updates error: ' . $e->getMessage());
             return [
@@ -119,7 +121,6 @@ class SatuanService
                 'data' => new SatuanResource($responseData['data']),
                 'message' => 'Satuan berhasil dibuat'
             ];
-
         } catch (\Exception $e) {
             Log::error('Create satuan error: ' . $e->getMessage());
             return [
@@ -155,7 +156,6 @@ class SatuanService
                 'success' => true,
                 'data' => new SatuanResource($responseData['data'])
             ];
-
         } catch (\Exception $e) {
             Log::error('Get satuan detail error: ' . $e->getMessage());
             return [
@@ -193,7 +193,6 @@ class SatuanService
                 'data' => new SatuanResource($responseData['data']),
                 'message' => 'Satuan berhasil diperbarui'
             ];
-
         } catch (\Exception $e) {
             Log::error('Update satuan error: ' . $e->getMessage());
             return [
@@ -229,7 +228,6 @@ class SatuanService
                 'success' => true,
                 'message' => 'Satuan berhasil dihapus'
             ];
-
         } catch (\Exception $e) {
             Log::error('Delete satuan error: ' . $e->getMessage());
             return [
@@ -245,7 +243,9 @@ class SatuanService
             $token = Session::get('jwt_token');
             $response = Http::withToken($token)
                 ->withoutRedirecting()
-                ->get(ApiConstant::BASE_URL . "/satuan/search/{$query}");
+                ->get(ApiConstant::BASE_URL . "/satuan/search", [
+                    'query' => $query
+                ]);
 
             $responseData = $response->json();
 
@@ -265,7 +265,6 @@ class SatuanService
                 'success' => true,
                 'data' => SatuanResource::collection($responseData['data'])
             ];
-
         } catch (\Exception $e) {
             Log::error('Search satuan error: ' . $e->getMessage());
             return [

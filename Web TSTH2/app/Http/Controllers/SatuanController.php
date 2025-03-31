@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\SatuanResource;
 use App\Services\SatuanService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SatuanController extends Controller
 {
@@ -22,20 +23,23 @@ class SatuanController extends Controller
         $perPage = $request->input('per_page', 10);
 
         $response = $this->satuanService->getAll($search, $perPage);
+        Log::info('Service response:', $response);
 
         if ($request->wantsJson()) {
             return response()->json($response);
         }
 
-        $satuans = $response['data'] ?? [];
+        // For web requests
+        if (!$response['success']) {
+            return redirect()->back()->with('error', $response['message']);
+        }
 
         return view('admin.satuan.index', [
-            'satuans' => $satuans,
+            'satuans' => $response['data'] ?? [],
             'search' => $search,
-            'pagination' => $satuans['meta'] ?? null
+            'pagination' => $response['meta'] ?? null
         ]);
     }
-
     public function getUpdates(Request $request)
     {
         $lastUpdate = $request->input('last_update');

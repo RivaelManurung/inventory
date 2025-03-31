@@ -2,8 +2,8 @@
 
 @section('title', 'Master Satuan')
 @section('breadcrumb')
-    <li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i class="fas fa-home"></i> Home</a></li>
-    <li class="breadcrumb-item active">Master Satuan</li>
+<li class="breadcrumb-item"><a href="{{ url('/dashboard') }}"><i class="fas fa-home"></i> Home</a></li>
+<li class="breadcrumb-item active">Master Satuan</li>
 @endsection
 
 @section('content')
@@ -14,7 +14,8 @@
                 <div class="card-header">
                     <h5 class="card-title">Daftar Satuan Barang</h5>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#tambahSatuanModal">
+                        <button type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                            data-target="#tambahSatuanModal">
                             <i class="fas fa-plus"></i> Tambah Satuan
                         </button>
                     </div>
@@ -24,7 +25,8 @@
                         <div class="col-md-6">
                             <form id="searchForm">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="searchInput" placeholder="Cari satuan..." value="{{ request('search') }}">
+                                    <input type="text" class="form-control" id="searchInput"
+                                        placeholder="Cari satuan..." value="{{ request('search') }}">
                                     <div class="input-group-append">
                                         <button class="btn btn-outline-secondary" type="submit">
                                             <i class="fas fa-search"></i>
@@ -39,7 +41,7 @@
                                     <i class="fas fa-sync-alt"></i> Refresh
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-secondary" id="pollingToggle">
-                                    <i class="fas fa-stop-circle"></i> Stop Auto-Refresh
+                                    <i class="fas fa-play-circle"></i> Start Auto-Refresh
                                 </button>
                             </div>
                         </div>
@@ -53,7 +55,7 @@
                     </div>
 
                     <div id="satuanTableContainer">
-                        <!-- Table content will be loaded here via AJAX -->
+                        <!-- Table will be loaded here via AJAX -->
                     </div>
                 </div>
             </div>
@@ -61,192 +63,81 @@
     </div>
 </div>
 
-<!-- Include your modals here -->
-<!-- Tambah Satuan Modal -->
-<div class="modal fade" id="tambahSatuanModal" tabindex="-1" role="dialog" aria-labelledby="tambahSatuanModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="tambahSatuanModalLabel">Tambah Satuan Baru</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form id="tambahSatuanForm">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="satuan_nama">Nama Satuan</label>
-                        <input type="text" class="form-control" id="satuan_nama" name="satuan_nama" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="satuan_slug">Slug</label>
-                        <input type="text" class="form-control" id="satuan_slug" name="satuan_slug" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="satuan_keterangan">Keterangan</label>
-                        <textarea class="form-control" id="satuan_keterangan" name="satuan_keterangan" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Satuan Modal -->
-<div class="modal fade" id="editSatuanModal" tabindex="-1" role="dialog" aria-labelledby="editSatuanModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editSatuanModalLabel">Edit Satuan</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form id="editSatuanForm">
-                @method('PUT')
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="edit_satuan_nama">Nama Satuan</label>
-                        <input type="text" class="form-control" id="edit_satuan_nama" name="satuan_nama" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_satuan_slug">Slug</label>
-                        <input type="text" class="form-control" id="edit_satuan_slug" name="satuan_slug" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit_satuan_keterangan">Keterangan</label>
-                        <textarea class="form-control" id="edit_satuan_keterangan" name="satuan_keterangan" rows="3"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Modals -->
+@include('Admin.satuan.modals')
 @endsection
 
 @section('scripts')
 <script>
-$(document).ready(function() {
-    let lastUpdate = null;
+    $(document).ready(function() {
     let currentPage = 1;
     let currentSearch = '';
-    let pollingInterval = 5000; // 5 detik
+    let isPollingActive = false;
     let pollingTimer;
-    let isPollingActive = true;
 
     // Load initial data
     loadSatuanData();
 
-    // Handle search form submission
+    // Search form handler
     $('#searchForm').on('submit', function(e) {
         e.preventDefault();
+        currentSearch = $('#searchInput').val();
         currentPage = 1;
         loadSatuanData();
     });
 
-    // Handle refresh button click
+    // Refresh button handler
     $('#refreshBtn').click(function() {
         loadSatuanData();
     });
 
-    // Handle polling toggle button
-    $('#pollingToggle').click(function() {
-        isPollingActive = !isPollingActive;
-        if (isPollingActive) {
-            $(this).html('<i class="fas fa-stop-circle"></i> Stop Auto-Refresh');
-            $(this).removeClass('btn-success').addClass('btn-outline-secondary');
-            loadSatuanData();
-        } else {
-            $(this).html('<i class="fas fa-play-circle"></i> Start Auto-Refresh');
-            $(this).removeClass('btn-outline-secondary').addClass('btn-success');
-            clearTimeout(pollingTimer);
+    // Load data function
+    function loadSatuanData(page = 1) {
+    $('#loadingIndicator').show();
+    $('#satuanTableContainer').hide();
+
+    $.ajax({
+        url: '/satuan',
+        type: 'GET',
+        data: {
+            page: page,
+            search: currentSearch,
+            per_page: 10
+        },
+        success: function(response) {
+            if (response.success) {
+                renderSatuanTable(response);
+            } else {
+                showErrorAlert(response.message || 'Gagal memuat data satuan');
+                // Show empty state
+                $('#satuanTableContainer').html(`
+                    <div class="alert alert-danger">
+                        ${response.message || 'Gagal memuat data satuan'}
+                    </div>
+                `).show();
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'Terjadi kesalahan saat memuat data';
+            if (xhr.status === 401) {
+                errorMessage = 'Sesi telah berakhir, silakan login kembali';
+                window.location.href = '/login';
+            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            showErrorAlert(errorMessage);
+            $('#satuanTableContainer').html(`
+                <div class="alert alert-danger">
+                    ${errorMessage}
+                </div>
+            `).show();
+        },
+        complete: function() {
+            $('#loadingIndicator').hide();
         }
     });
-
-    // Function to load satuan data via AJAX
-    function loadSatuanData(page = 1, search = '') {
-        if (!isPollingActive) return;
-
-        clearTimeout(pollingTimer);
-        
-        $('#loadingIndicator').show();
-        $('#satuanTableContainer').hide();
-
-        currentPage = page;
-        currentSearch = $('#searchInput').val() || search;
-
-        $.ajax({
-            url: '/api/satuan/updates',
-            type: 'GET',
-            data: {
-                page: currentPage,
-                search: currentSearch,
-                last_update: lastUpdate
-            },
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token')
-            },
-            success: function(response) {
-                if (response.success) {
-                    lastUpdate = response.last_update;
-                    renderSatuanTable(response);
-                } else {
-                    showErrorAlert(response.message || 'Gagal memuat data satuan');
-                }
-                
-                // Schedule next poll
-                if (isPollingActive) {
-                    scheduleNextPoll();
-                }
-            },
-            error: function(xhr) {
-                let errorMessage = 'Terjadi kesalahan saat memuat data';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                showErrorAlert(errorMessage);
-                
-                // Schedule next poll with backoff
-                if (isPollingActive) {
-                    scheduleNextPollWithBackoff();
-                }
-            },
-            complete: function() {
-                $('#loadingIndicator').hide();
-                $('#satuanTableContainer').show();
-            }
-        });
-    }
-
-    // Schedule next poll
-    function scheduleNextPoll() {
-        clearTimeout(pollingTimer);
-        pollingTimer = setTimeout(function() {
-            loadSatuanData(currentPage, currentSearch);
-        }, pollingInterval);
-    }
-
-    // Schedule next poll with exponential backoff
-    let errorCount = 0;
-    function scheduleNextPollWithBackoff() {
-        clearTimeout(pollingTimer);
-        errorCount++;
-        let delay = Math.min(pollingInterval * Math.pow(2, errorCount), 300000); // Max 5 minutes
-        
-        pollingTimer = setTimeout(function() {
-            loadSatuanData(currentPage, currentSearch);
-        }, delay);
-    }
-
-    // Function to render satuan table
+}
+    // Render table function - Updated to match your service response
     function renderSatuanTable(response) {
         let html = `
             <div class="table-responsive">
@@ -262,23 +153,25 @@ $(document).ready(function() {
                     </thead>
                     <tbody>`;
 
-        if (response.data.length > 0) {
+        if (response.data && response.data.length > 0) {
             response.data.forEach((satuan, index) => {
+                // Adjusted to match SatuanResource structure
+                const satuanData = satuan.resource ? satuan.resource : satuan;
                 html += `
                     <tr>
-                        <td>${response.meta.from + index}</td>
-                        <td>${satuan.satuan_nama}</td>
-                        <td>${satuan.satuan_slug}</td>
-                        <td>${satuan.satuan_keterangan || '-'}</td>
+                        <td>${(response.meta.current_page - 1) * response.meta.per_page + index + 1}</td>
+                        <td>${satuanData.satuan_nama}</td>
+                        <td>${satuanData.satuan_slug}</td>
+                        <td>${satuanData.satuan_keterangan || '-'}</td>
                         <td>
                             <button class="btn btn-sm btn-warning edit-satuan" 
-                                data-id="${satuan.satuan_id}"
-                                data-nama="${satuan.satuan_nama}"
-                                data-slug="${satuan.satuan_slug}"
-                                data-keterangan="${satuan.satuan_keterangan || ''}">
+                                data-id="${satuanData.satuan_id}"
+                                data-nama="${satuanData.satuan_nama}"
+                                data-slug="${satuanData.satuan_slug}"
+                                data-keterangan="${satuanData.satuan_keterangan || ''}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger delete-satuan" data-id="${satuan.satuan_id}">
+                            <button class="btn btn-sm btn-danger delete-satuan" data-id="${satuanData.satuan_id}">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -298,7 +191,7 @@ $(document).ready(function() {
         html += `</tbody></table></div>`;
 
         // Pagination
-        if (response.meta.last_page > 1) {
+        if (response.meta && response.meta.last_page > 1) {
             html += `<div class="row">
                 <div class="col-md-6">
                     <p>Menampilkan ${response.meta.from} sampai ${response.meta.to} dari ${response.meta.total} data</p>
@@ -308,21 +201,18 @@ $(document).ready(function() {
                         <nav>
                             <ul class="pagination">`;
 
-            // Previous page link
             if (response.meta.current_page > 1) {
                 html += `<li class="page-item">
                     <a class="page-link" href="#" onclick="return loadPageData(${response.meta.current_page - 1})">Previous</a>
                 </li>`;
             }
 
-            // Page links
             for (let i = 1; i <= response.meta.last_page; i++) {
                 html += `<li class="page-item ${response.meta.current_page === i ? 'active' : ''}">
                     <a class="page-link" href="#" onclick="return loadPageData(${i})">${i}</a>
                 </li>`;
             }
 
-            // Next page link
             if (response.meta.current_page < response.meta.last_page) {
                 html += `<li class="page-item">
                     <a class="page-link" href="#" onclick="return loadPageData(${response.meta.current_page + 1})">Next</a>
@@ -336,69 +226,113 @@ $(document).ready(function() {
         initializeEventHandlers();
     }
 
-    // Global function for pagination
-    window.loadPageData = function(page) {
-        loadSatuanData(page);
-        return false;
-    }
+    // Form submissions - Updated to match your controller endpoints
+    $('#tambahSatuanForm').on('submit', function(e) {
+        e.preventDefault();
+        createSatuan($(this));
+    });
 
-    // Initialize event handlers for dynamic elements
-    function initializeEventHandlers() {
-        // Edit button handler
-        $('.edit-satuan').click(function() {
-            var id = $(this).data('id');
-            var nama = $(this).data('nama');
-            var slug = $(this).data('slug');
-            var keterangan = $(this).data('keterangan');
+    $('#editSatuanForm').on('submit', function(e) {
+        e.preventDefault();
+        updateSatuan($(this));
+    });
 
-            $('#edit_satuan_nama').val(nama);
-            $('#edit_satuan_slug').val(slug);
-            $('#edit_satuan_keterangan').val(keterangan);
+    // Create satuan - Updated endpoint
+    function createSatuan(form) {
+        $('#submitButton').prop('disabled', true);
+        $('.text-danger').text('');
 
-            $('#editSatuanForm').attr('action', '/api/satuans/' + id);
-            $('#editSatuanModal').modal('show');
-        });
-
-        // Delete button handler
-        $('.delete-satuan').click(function() {
-            var id = $(this).data('id');
-            confirmDelete(id);
-        });
-    }
-
-    // Confirm delete function
-    function confirmDelete(id) {
-        Swal.fire({
-            title: 'Apakah Anda yakin?',
-            text: "Satuan ini akan dihapus secara permanen!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                deleteSatuan(id);
+        $.ajax({
+            url: '/satuan', // Changed from '/api/satuan'
+            type: 'POST',
+            data: form.serialize(),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#tambahSatuanModal').modal('hide');
+                    form[0].reset();
+                    showSuccessAlert(response.message);
+                    loadSatuanData();
+                } else {
+                    showErrorAlert(response.message);
+                    if (response.errors) {
+                        for (const [key, value] of Object.entries(response.errors)) {
+                            $(`#${key}_error`).text(value[0]);
+                        }
+                    }
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat membuat satuan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                showErrorAlert(errorMessage);
+            },
+            complete: function() {
+                $('#submitButton').prop('disabled', false);
             }
         });
     }
 
-    // Delete satuan via API
+    // Update satuan - Updated endpoint
+    function updateSatuan(form) {
+        $('#updateButton').prop('disabled', true);
+        $('.text-danger').text('');
+
+        const id = $('#edit_satuan_id').val();
+
+        $.ajax({
+            url: `/satuan/${id}`, // Changed from `/api/satuan/${id}`
+            type: 'POST',
+            data: form.serialize() + '&_method=PUT',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#editSatuanModal').modal('hide');
+                    showSuccessAlert(response.message);
+                    loadSatuanData();
+                } else {
+                    showErrorAlert(response.message);
+                    if (response.errors) {
+                        for (const [key, value] of Object.entries(response.errors)) {
+                            $(`#edit_${key}_error`).text(value[0]);
+                        }
+                    }
+                }
+            },
+            error: function(xhr) {
+                let errorMessage = 'Terjadi kesalahan saat memperbarui satuan';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                showErrorAlert(errorMessage);
+            },
+            complete: function() {
+                $('#updateButton').prop('disabled', false);
+            }
+        });
+    }
+
+    // Delete satuan - Updated endpoint
     function deleteSatuan(id) {
         $.ajax({
-            url: '/api/satuans' + id,
-            type: 'DELETE',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token'),
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            url: `/satuan/${id}`, // Changed from `/api/satuan/${id}`
+            type: 'POST',
+            data: {
+                _method: 'DELETE',
+                _token: $('meta[name="csrf-token"]').attr('content')
             },
             success: function(response) {
                 if (response.success) {
                     showSuccessAlert(response.message);
                     loadSatuanData();
                 } else {
-                    showErrorAlert(response.message || 'Gagal menghapus satuan');
+                    showErrorAlert(response.message);
                 }
             },
             error: function(xhr) {
@@ -411,124 +345,7 @@ $(document).ready(function() {
         });
     }
 
-    // Handle create form submission
-    $('#tambahSatuanForm').on('submit', function(e) {
-        e.preventDefault();
-        createSatuan($(this));
-    });
-
-    // Handle edit form submission
-    $('#editSatuanForm').on('submit', function(e) {
-        e.preventDefault();
-        updateSatuan($(this));
-    });
-
-    // Create new satuan
-    function createSatuan(form) {
-        $.ajax({
-            url: '/api/satuan',
-            type: 'POST',
-            data: form.serialize(),
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token'),
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#tambahSatuanModal').modal('hide');
-                    form[0].reset();
-                    showSuccessAlert(response.message);
-                    loadSatuanData();
-                } else {
-                    showErrorAlert(response.message || 'Gagal membuat satuan baru');
-                }
-            },
-            error: function(xhr) {
-                let errorMessage = 'Terjadi kesalahan saat membuat satuan';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                showErrorAlert(errorMessage);
-            }
-        });
-    }
-
-    // Update satuan
-    function updateSatuan(form) {
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize() + '&_method=PUT',
-            headers: {
-                'Authorization': 'Bearer ' + localStorage.getItem('jwt_token'),
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#editSatuanModal').modal('hide');
-                    showSuccessAlert(response.message);
-                    loadSatuanData();
-                } else {
-                    showErrorAlert(response.message || 'Gagal memperbarui satuan');
-                }
-            },
-            error: function(xhr) {
-                let errorMessage = 'Terjadi kesalahan saat memperbarui satuan';
-                if (xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMessage = xhr.responseJSON.message;
-                }
-                showErrorAlert(errorMessage);
-            }
-        });
-    }
-
-    // Helper functions for alerts
-    function showSuccessAlert(message) {
-        Swal.fire({
-            icon: 'success',
-            title: 'Sukses!',
-            text: message,
-            timer: 3000,
-            showConfirmButton: false
-        });
-    }
-
-    function showErrorAlert(message) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: message,
-            timer: 3000,
-            showConfirmButton: false
-        });
-    }
-
-    // Auto generate slug from nama satuan
-    $('#satuan_nama').on('keyup', function() {
-        var nama = $(this).val();
-        var slug = nama.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
-        $('#satuan_slug').val(slug);
-    });
-
-    // When modal is closed, reset error count
-    $('.modal').on('hidden.bs.modal', function() {
-        errorCount = 0;
-    });
-
-    // Adjust polling when tab is not active
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            pollingInterval = 30000; // 30 seconds when tab is inactive
-        } else {
-            pollingInterval = 5000; // 5 seconds when tab is active
-            loadSatuanData(); // Refresh immediately
-        }
-    });
-
-    // Show success message from session
-    @if(session('success'))
-        showSuccessAlert('{{ session('success') }}');
-    @endif
+    // ... (keep the rest of your existing helper functions)
 });
 </script>
 @endsection
