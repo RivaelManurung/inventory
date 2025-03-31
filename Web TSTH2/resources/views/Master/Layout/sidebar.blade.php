@@ -7,10 +7,12 @@
             <div class="sidebar-section-body d-flex justify-content-center">
                 <h5 class="sidebar-resize-hide flex-grow-1 my-auto">Navigation</h5>
                 <div>
-                    <button type="button" class="btn btn-flat-white btn-icon btn-sm rounded-pill border-transparent sidebar-control sidebar-main-resize d-none d-lg-inline-flex">
+                    <button type="button"
+                        class="btn btn-flat-white btn-icon btn-sm rounded-pill border-transparent sidebar-control sidebar-main-resize d-none d-lg-inline-flex">
                         <i class="ph-arrows-left-right"></i>
                     </button>
-                    <button type="button" class="btn btn-flat-white btn-icon btn-sm rounded-pill border-transparent sidebar-mobile-main-toggle d-lg-none">
+                    <button type="button"
+                        class="btn btn-flat-white btn-icon btn-sm rounded-pill border-transparent sidebar-mobile-main-toggle d-lg-none">
                         <i class="ph-x"></i>
                     </button>
                 </div>
@@ -38,10 +40,14 @@
                         <span>Master Barang</span>
                     </a>
                     <ul class="nav-group-sub collapse">
-                        <li class="nav-item"><a href="{{ url('/jenisbarang') }}" class="nav-link {{ Request::is('jenis') ? 'active' : '' }}">Jenis</a></li>
-                        <li class="nav-item"><a href="{{ url('/satuan') }}" class="nav-link {{ Request::is('satuan') ? 'active' : '' }}">Satuan</a></li>
-                        <li class="nav-item"><a href="{{ url('/merk') }}" class="nav-link {{ Request::is('merk') ? 'active' : '' }}">Merk</a></li>
-                        <li class="nav-item"><a href="{{ url('/barang') }}" class="nav-link {{ Request::is('barang') ? 'active' : '' }}">Barang</a></li>
+                        <li class="nav-item"><a href="{{ url('/jenis-barang') }}"
+                                class="nav-link {{ Request::is('jenis') ? 'active' : '' }}">Jenis</a></li>
+                        <li class="nav-item"><a href="{{ url('/satuan') }}"
+                                class="nav-link {{ Request::is('satuan') ? 'active' : '' }}">Satuan</a></li>
+                        <li class="nav-item"><a href="{{ url('/merk') }}"
+                                class="nav-link {{ Request::is('merk') ? 'active' : '' }}">Merk</a></li>
+                        <li class="nav-item"><a href="{{ url('/barang') }}"
+                                class="nav-link {{ Request::is('barang') ? 'active' : '' }}">Barang</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -56,11 +62,21 @@
                         <span>Transaksi</span>
                     </a>
                     <ul class="nav-group-sub collapse">
-                        <li class="nav-item"><a href="{{ url('/transaksi') }}" class="nav-link {{ Request::is('transaksi/barang-masuk') ? 'active' : '' }}">Barang Masuk</a></li>
-                        <li class="nav-item"><a href="{{ url('/transaksi/barang-keluar') }}" class="nav-link {{ Request::is('transaksi/barang-keluar') ? 'active' : '' }}">Barang Keluar</a></li>
-                        <li class="nav-item"><a href="{{ url('/transaksi/peminjaman') }}" class="nav-link {{ Request::is('transaksi/peminjaman') ? 'active' : '' }}">Peminjaman</a></li>
-                        <li class="nav-item"><a href="{{ url('/transaksi/pengembalian') }}" class="nav-link {{ Request::is('transaksi/pengembalian') ? 'active' : '' }}">Pengembalian</a></li>
-                        <li class="nav-item"><a href="{{ url('/transaksi/maintenance') }}" class="nav-link {{ Request::is('transaksi/maintenance') ? 'active' : '' }}">Maintenance</a></li>
+                        <li class="nav-item"><a href="{{ url('/transaksi') }}"
+                                class="nav-link {{ Request::is('transaksi/barang-masuk') ? 'active' : '' }}">Barang
+                                Masuk</a></li>
+                        <li class="nav-item"><a href="{{ url('/transaksi/barang-keluar') }}"
+                                class="nav-link {{ Request::is('transaksi/barang-keluar') ? 'active' : '' }}">Barang
+                                Keluar</a></li>
+                        <li class="nav-item"><a href="{{ url('/transaksi/peminjaman') }}"
+                                class="nav-link {{ Request::is('transaksi/peminjaman') ? 'active' : '' }}">Peminjaman</a>
+                        </li>
+                        <li class="nav-item"><a href="{{ url('/transaksi/pengembalian') }}"
+                                class="nav-link {{ Request::is('transaksi/pengembalian') ? 'active' : '' }}">Pengembalian</a>
+                        </li>
+                        <li class="nav-item"><a href="{{ url('/transaksi/maintenance') }}"
+                                class="nav-link {{ Request::is('transaksi/maintenance') ? 'active' : '' }}">Maintenance</a>
+                        </li>
                     </ul>
                 </li>
                 <li class="nav-item">
@@ -85,7 +101,8 @@
                     <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
                         @csrf
                     </form>
-                    <a href="#" class="nav-link text-danger" onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
+                    <a href="#" class="nav-link text-danger"
+                        onclick="event.preventDefault(); document.getElementById('logoutForm').submit();">
                         <i class="ph-sign-out"></i>
                         <span>Logout</span>
                     </a>

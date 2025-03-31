@@ -35,7 +35,7 @@
     <div class="container">
         <h1>404</h1>
         <p>Halaman yang Anda cari tidak ditemukan</p>
-        <a href="{{ url('/') }}">Kembali ke Beranda</a>
+        <a href="{{ url('/dashboard') }}">Kembali ke Beranda</a>
     </div>
 </body>
 </html>

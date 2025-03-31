@@ -4,8 +4,9 @@ use App\Http\Middleware\JwtAuth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WebAuthController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\BarangKeluarController; // Add this line
+use App\Http\Controllers\BarangKeluarController;
 use App\Http\Controllers\SatuanController;
+use App\Http\Controllers\JenisBarangController;
 
 // Public Routes
 Route::get('/', function () {
@@ -45,6 +46,17 @@ Route::middleware(JwtAuth::class)->group(function () {
         Route::put('/{satuan}', [SatuanController::class, 'update'])->name('satuan.update');
         Route::delete('/{satuan}', [SatuanController::class, 'destroy'])->name('satuan.destroy');
         Route::get('/{satuan}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
+    });
+
+    // Jenis Barang Routes
+    Route::prefix('jenis-barang')->group(function () {
+        Route::get('/', [JenisBarangController::class, 'index'])->name('jenis-barang.index');
+        Route::post('/', [JenisBarangController::class, 'store'])->name('jenis-barang.store');
+        Route::get('/create', [JenisBarangController::class, 'create'])->name('jenis-barang.create');
+        Route::get('/{jenis_barang}', [JenisBarangController::class, 'show'])->name('jenis-barang.show');
+        Route::put('/{jenis_barang}', [JenisBarangController::class, 'update'])->name('jenis-barang.update');
+        Route::delete('/{jenis_barang}', [JenisBarangController::class, 'destroy'])->name('jenis-barang.destroy');
+        Route::get('/{jenis_barang}/edit', [JenisBarangController::class, 'edit'])->name('jenis-barang.edit');
     });
 
     // Logout Route
