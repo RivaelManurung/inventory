@@ -7,6 +7,7 @@ use App\Services\BarangService;
 use App\Services\JenisBarangService;
 use App\Services\SatuanService;
 use Illuminate\Http\Request;
+use Milon\Barcode\DNS1D;
 
 class BarangController extends Controller
 {
@@ -87,13 +88,17 @@ class BarangController extends Controller
         }
     }
 
-    public function generateBarcode(int $id)
+    public function generateBarangBarcode(string $code)
     {
         try {
-            $result = $this->barang_service->generateBarangBarcode($id);
-            return redirect()->back()->with('success', 'Barcode berhasil digenerate');
-        } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Gagal generate barcode: ' . $th->getMessage());
+            $dns = new DNS1D();
+            return [
+                'image_png' => $dns->getBarcodePNG($code, 'C128'),
+                'image_svg' => $dns->getBarcodeSVG($code, 'C128'),
+                'code' => $code
+            ];
+        } catch (\Exception $e) {
+            throw new \Exception('Gagal generate barcode: ' . $e->getMessage());
         }
     }
 
@@ -103,6 +108,16 @@ class BarangController extends Controller
             return $this->barang_service->downloadBarangBarcode($id);
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Gagal download barcode: ' . $th->getMessage());
+        }
+    }
+    public function showBarcode($id)
+    {
+        try {
+            $barang = $this->barang_service->getDetailBarang($id);
+            $barcode = $this->barang_service->generateBarangBarcode($barang->barang_kode);
+            return view('admin.barang.barcode', compact('barang', 'barcode'));
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal menampilkan barcode: ' . $th->getMessage());
         }
     }
 }

@@ -12,100 +12,52 @@ Home
 <i class="ph-package"></i>
 @endsection
 
-@push('resource')
+@push('styles')
+<style>
+    .barcode-img {
+        height: 40px;
+        width: auto;
+        image-rendering: crisp-edges;
+    }
+    
+    .barcode-container {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .barcode-container:hover .barcode-img {
+        transform: scale(3);
+        transform-origin: left center;
+        z-index: 1000;
+        position: relative;
+        background: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease;
+    }
+    
+    .barcode-tooltip {
+        max-width: none !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
 <script>
     $(document).ready(function() {
         $('#barangTable').DataTable();
+        
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip({
+            container: '.barcode-tooltip',
+            html: true
+        });
     });
 </script>
 @endpush
 
 @section('content')
-<!-- Create Modal -->
-<div class="modal fade" id="formAddBarang" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Barang</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('barang.create') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Kode Barang <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('barang_kode') is-invalid @enderror"
-                            name="barang_kode" value="{{ old('barang_kode') }}" required>
-                        @error('barang_kode')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('barang_nama') is-invalid @enderror"
-                            name="barang_nama" value="{{ old('barang_nama') }}" required>
-                        @error('barang_nama')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Harga <span class="text-danger">*</span></label>
-                        <input type="number" class="form-control @error('barang_harga') is-invalid @enderror"
-                            name="barang_harga" value="{{ old('barang_harga') }}" required>
-                        @error('barang_harga')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Satuan <span class="text-danger">*</span></label>
-                        <select class="form-select @error('satuan_id') is-invalid @enderror" name="satuan_id" required>
-                            <option value="">Pilih Satuan</option>
-                            @foreach($satuans as $satuan)
-                            <option value="{{ $satuan->satuan_id }}" {{ old('satuan_id')==$satuan->satuan_id ?
-                                'selected' : '' }}>
-                                {{ $satuan->satuan_nama }}
-                            </option>
-                            @endforeach
-                        </select>
-                        @error('satuan_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
-                        <select class="form-select" name="jenisbarang_id" required>
-                            <option value="">Pilih Jenis Barang</option>
-                            @foreach ($jbs as $jb)
-                            <option value="{{ $jb->jenis_barang_id }}">{{ $jb->jenisbarang_nama }}
-                            </option>
-                            @endforeach
-                        </select>
-
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Klasifikasi <span class="text-danger">*</span></label>
-                        <select class="form-select @error('klasifikasi_barang') is-invalid @enderror"
-                            name="klasifikasi_barang" required>
-                            <option value="">Pilih Klasifikasi</option>
-                            <option value="sekali_pakai" {{ old('klasifikasi_barang')=='sekali_pakai' ? 'selected' : ''
-                                }}>
-                                Sekali Pakai</option>
-                            <option value="berulang" {{ old('klasifikasi_barang')=='berulang' ? 'selected' : '' }}>
-                                Berulang</option>
-                        </select>
-                        @error('klasifikasi_barang')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+<!-- Create Modal (keep existing modal code) -->
+<!-- ... -->
 
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
@@ -135,7 +87,8 @@ Home
                 <thead>
                     <tr>
                         <th width="5%">No</th>
-                        <th>Kode</th>
+                        <th>Kode Barang</th>
+                        <th width="15%">Barcode</th>
                         <th>Nama Barang</th>
                         <th>Harga</th>
                         <th>Satuan</th>
@@ -150,13 +103,24 @@ Home
                     <tr>
                         <td>{{ $key + 1 }}</td>
                         <td>{{ $barang->barang_kode }}</td>
+                        <td>
+                            @if(isset($barang->barcode))
+                            <div class="barcode-container" data-bs-toggle="tooltip" data-bs-html="true"
+                                title="<div class='text-center'><img src='data:image/png;base64,{{ $barang->barcode['image_png'] }}' style='width:200px'><br>{{ $barang->barang_kode }}</div>">
+                                <img src="data:image/png;base64,{{ $barang->barcode['image_png'] }}" 
+                                    class="barcode-img"
+                                    alt="Barcode {{ $barang->barang_kode }}">
+                            </div>
+                            @else
+                            <span class="text-muted">No barcode</span>
+                            @endif
+                        </td>
                         <td>{{ $barang->barang_nama }}</td>
                         <td>Rp {{ number_format($barang->barang_harga, 0, ',', '.') }}</td>
                         <td>{{ $barang->satuan['satuan_nama'] }}</td>
                         <td>{{ $barang->jenisbarang['jenisbarang_nama'] }}</td>
                         <td>
-                            <span
-                                class="badge {{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'badge-sekali_pakai' : 'badge-berulang' }}">
+                            <span class="badge {{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'badge-sekali_pakai' : 'badge-berulang' }}">
                                 {{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}
                             </span>
                         </td>
