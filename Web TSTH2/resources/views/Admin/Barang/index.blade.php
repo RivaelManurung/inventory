@@ -1,159 +1,258 @@
-@extends('layouts.app')
+@extends('Master.Layout.app')
 
-@section('content')
-<div class="container">
-    <h2>Master Satuan</h2>
-    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#tambahSatuanModal">Tambah Satuan</button>
-    <input type="text" id="searchSatuan" class="form-control mb-3" placeholder="Cari Satuan...">
-    <button class="btn btn-secondary mb-3" id="refreshSatuan">Refresh</button>
-    <div id="satuanTableContainer"></div>
-</div>
-
-<!-- Modal Tambah Satuan -->
-<div class="modal fade" id="tambahSatuanModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Satuan</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="tambahSatuanForm">
-                    <div class="form-group">
-                        <label>Nama Satuan</label>
-                        <input type="text" name="satuan_nama" class="form-control" required>
-                        <span class="text-danger" id="satuan_nama_error"></span>
-                    </div>
-                    <div class="form-group">
-                        <label>Slug</label>
-                        <input type="text" name="satuan_slug" class="form-control" required>
-                        <span class="text-danger" id="satuan_slug_error"></span>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Edit Satuan -->
-<div class="modal fade" id="editSatuanModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Edit Satuan</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="editSatuanForm">
-                    <input type="hidden" id="edit_satuan_id">
-                    <div class="form-group">
-                        <label>Nama Satuan</label>
-                        <input type="text" id="edit_satuan_nama" class="form-control" required>
-                        <span class="text-danger" id="edit_satuan_nama_error"></span>
-                    </div>
-                    <div class="form-group">
-                        <label>Slug</label>
-                        <input type="text" id="edit_satuan_slug" class="form-control" required>
-                        <span class="text-danger" id="edit_satuan_slug_error"></span>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Simpan</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
+@section('title')
+    Barang
+@endsection
+@section('menu')
+    Home
+@endsection
+@section('icon')
+    <i class="ph-package"></i>
 @endsection
 
-@section('scripts')
-<script>
-$(document).ready(function() {
-    function loadSatuanData(page = 1, search = '') {
-        $.get(`/api/satuan?page=${page}&search=${search}`, function(response) {
-            let html = '<table class="table table-bordered">';
-            html += '<tr><th>Nama</th><th>Slug</th><th>Aksi</th></tr>';
-            response.data.forEach(satuan => {
-                html += `<tr>
-                            <td>${satuan.nama}</td>
-                            <td>${satuan.slug}</td>
-                            <td>
-                                <button class="btn btn-warning edit-satuan" data-id="${satuan.id}" data-nama="${satuan.nama}" data-slug="${satuan.slug}">Edit</button>
-                                <button class="btn btn-danger delete-satuan" data-id="${satuan.id}">Hapus</button>
-                            </td>
-                         </tr>`;
-            });
-            html += '</table>';
-            $('#satuanTableContainer').html(html);
-        });
+@push('styles')
+<style>
+    /* Custom table styling */
+    #barangTable_wrapper .dataTables_filter input {
+        border-radius: 5px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
     }
-    
-    loadSatuanData();
-    setInterval(loadSatuanData, 5000); // Auto refresh setiap 5 detik
+    #barangTable_wrapper .dataTables_length select {
+        border-radius: 5px;
+        padding: 5px;
+        border: 1px solid #ddd;
+    }
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+</style>
+@endpush
 
-    $('#searchSatuan').keyup(function() {
-        let search = $(this).val();
-        loadSatuanData(1, search);
-    });
-
-    $('#refreshSatuan').click(function() {
-        loadSatuanData();
-    });
-
-    $(document).on('click', '.edit-satuan', function() {
-        let satuanId = $(this).data('id');
-        let nama = $(this).data('nama');
-        let slug = $(this).data('slug');
-
-        $('#edit_satuan_id').val(satuanId);
-        $('#edit_satuan_nama').val(nama);
-        $('#edit_satuan_slug').val(slug);
-        $('#editSatuanModal').modal('show');
-    });
-
-    $(document).on('click', '.delete-satuan', function() {
-        let satuanId = $(this).data('id');
-        if (confirm('Apakah Anda yakin ingin menghapus satuan ini?')) {
-            $.ajax({
-                url: `/api/satuan/${satuanId}`,
-                type: 'DELETE',
-                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') },
-                success: function(response) {
-                    alert('Satuan berhasil dihapus.');
-                    loadSatuanData();
-                }
-            });
-        }
-    });
-
-    $('#tambahSatuanForm').submit(function(e) {
-        e.preventDefault();
-        $.post('/api/satuan', $(this).serialize(), function(response) {
-            alert('Satuan berhasil ditambahkan.');
-            $('#tambahSatuanModal').modal('hide');
-            loadSatuanData();
-        }).fail(function(xhr) {
-            let errors = xhr.responseJSON.errors;
-            $('#satuan_nama_error').text(errors.satuan_nama ? errors.satuan_nama[0] : '');
-            $('#satuan_slug_error').text(errors.satuan_slug ? errors.satuan_slug[0] : '');
-        });
-    });
-
-    $('#editSatuanForm').submit(function(e) {
-        e.preventDefault();
-        let satuanId = $('#edit_satuan_id').val();
-        $.ajax({
-            url: `/api/satuan/${satuanId}`,
-            type: 'PUT',
-            data: $(this).serialize(),
-            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('jwt_token') },
-            success: function(response) {
-                alert('Satuan berhasil diperbarui.');
-                $('#editSatuanModal').modal('hide');
-                loadSatuanData();
+@push('resource')
+<script>
+    $(document).ready(function() {
+        $('#barangTable').DataTable({
+            responsive: true,
+            autoWidth: true,
+            paging: true,
+            lengthChange: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
             }
         });
     });
-});
 </script>
+@endpush
+
+@section('content')
+    {{-- Create Modal --}}
+    <div class="modal fade" id="formAddBarang" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Barang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('barang.create') }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="barang_nama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Harga <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="barang_harga" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Satuan <span class="text-danger">*</span></label>
+                            <select class="form-select" name="satuan_id" required>
+                                @foreach($satuans as $satuan)
+                                    <option value="{{ $satuan->satuan_id }}">{{ $satuan->satuan_nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
+                            <select class="form-select" name="jenisbarang_id" required>
+                                @foreach($jenisBarangs as $jenisBarang)
+                                    <option value="{{ $jenisBarang->jenis_barang_id }}">{{ $jenisBarang->jenisbarang_nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Klasifikasi <span class="text-danger">*</span></label>
+                            <select class="form-select" name="klasifikasi_barang" required>
+                                <option value="sekali_pakai">Sekali Pakai</option>
+                                <option value="berulang">Berulang</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Simpan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- View/Edit/Delete Modals --}}
+    @foreach ($barangs as $barang)
+        {{-- View Modal --}}
+        <div class="modal fade" id="detailBarang{{ $barang->barang_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detail Barang</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Nama:</strong> {{ $barang->nama }}</p>
+                        <p><strong>Harga:</strong> Rp {{ number_format($barang->harga, 0, ',', '.') }}</p>
+                        <p><strong>Satuan:</strong> {{ $barang->satuan->satuan_nama ?? '-' }}</p>
+                        <p><strong>Jenis Barang:</strong> {{ $barang->jenisBarang->jenisbarang_nama ?? '-' }}</p>
+                        <p><strong>Klasifikasi:</strong> {{ $barang->klasifikasi == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}</p>
+                        <p><strong>Dibuat Pada:</strong> {{ $barang->created_at }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Edit Modal --}}
+        <div class="modal fade" id="updateBarang{{ $barang->barang_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Barang</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{{ route('barang.update', $barang->barang_id) }}">
+                            @csrf
+                            @method('PUT')
+                            <div class="mb-3">
+                                <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="barang_nama" value="{{ $barang->nama }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Harga <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="barang_harga" value="{{ $barang->harga }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Satuan <span class="text-danger">*</span></label>
+                                <select class="form-select" name="satuan_id" required>
+                                    @foreach($satuans as $satuan)
+                                        <option value="{{ $satuan->satuan_id }}" {{ $satuan->satuan_id == $barang->satuan_id ? 'selected' : '' }}>
+                                            {{ $satuan->satuan_nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
+                                <select class="form-select" name="jenisbarang_id" required>
+                                    @foreach($jenisBarangs as $jenisBarang)
+                                        <option value="{{ $jenisBarang->jenis_barang_id }}" {{ $jenisBarang->jenis_barang_id == $barang->jenis_barang_id ? 'selected' : '' }}>
+                                            {{ $jenisBarang->jenisbarang_nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Klasifikasi <span class="text-danger">*</span></label>
+                                <select class="form-select" name="klasifikasi_barang" required>
+                                    <option value="sekali_pakai" {{ $barang->klasifikasi == 'sekali_pakai' ? 'selected' : '' }}>Sekali Pakai</option>
+                                    <option value="berulang" {{ $barang->klasifikasi == 'berulang' ? 'selected' : '' }}>Berulang</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-success">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Delete Modal --}}
+        <div class="modal fade" id="formDeleteBarang{{ $barang->barang_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Hapus</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Hapus barang "{{ $barang->nama }}"?</p>
+                        <form method="POST" action="{{ route('barang.delete', $barang->barang_id) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">Hapus</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- Main Content --}}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Data Barang</h5>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#formAddBarang">
+                <i class="ph-plus me-1"></i> Tambah
+            </button>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="barangTable" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th>Nama</th>
+                            <th>Harga</th>
+                            <th>Satuan</th>
+                            <th>Jenis Barang</th>
+                            <th>Klasifikasi</th>
+                            <th width="15%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($barangs as $key => $barang)
+                            <tr>
+                                <td>{{ $key + 1 }}</td>
+                                <td>{{ $barang->nama }}</td>
+                                <td>Rp {{ number_format($barang->harga, 0, ',', '.') }}</td>
+                                <td>{{ $barang->satuan->satuan_nama ?? '-' }}</td>
+                                <td>{{ $barang->jenisBarang->jenisbarang_nama ?? '-' }}</td>
+                                <td>{{ $barang->klasifikasi == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}</td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                            data-bs-target="#detailBarang{{ $barang->barang_id }}" title="Detail">
+                                            <i class="ph-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                            data-bs-target="#updateBarang{{ $barang->barang_id }}" title="Edit">
+                                            <i class="ph-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                            data-bs-target="#formDeleteBarang{{ $barang->barang_id }}" title="Hapus">
+                                            <i class="ph-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 @endsection

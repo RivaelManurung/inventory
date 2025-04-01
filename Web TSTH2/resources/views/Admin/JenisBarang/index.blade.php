@@ -63,11 +63,11 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label">Nama Jenis Barang <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="nama" required>
+                            <input type="text" class="form-control" name="jenisbarang_nama" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Keterangan</label>
-                            <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                            <textarea class="form-control" name="jenisbarang_ket" rows="3"></textarea>
                         </div>
                         <button type="submit" class="btn btn-success">Simpan</button>
                     </form>
@@ -79,7 +79,7 @@
     {{-- View/Edit/Delete Modals --}}
     @foreach ($jenisBarangs as $jenisBarang)
         {{-- View Modal --}}
-        <div class="modal fade" id="detailJenisBarang{{ $jenisBarang->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="detailJenisBarang{{ $jenisBarang->jenis_barang_id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -87,8 +87,9 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Nama:</strong> {{ $jenisBarang->nama }}</p>
-                        <p><strong>Keterangan:</strong> {{ $jenisBarang->keterangan ?? '-' }}</p>
+                        <p><strong>Nama:</strong> {{ $jenisBarang->jenisbarang_nama }}</p>
+                        <p><strong>Slug:</strong> {{ $jenisBarang->jenisbarang_slug }}</p>
+                        <p><strong>Keterangan:</strong> {{ $jenisBarang->jenisbarang_ket ?? '-' }}</p>
                         <p><strong>Dibuat Pada:</strong> {{ $jenisBarang->created_at }}</p>
                     </div>
                     <div class="modal-footer">
@@ -99,7 +100,7 @@
         </div>
 
         {{-- Edit Modal --}}
-        <div class="modal fade" id="updateJenisBarang{{ $jenisBarang->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="updateJenisBarang{{ $jenisBarang->jenis_barang_id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -107,16 +108,16 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form method="POST" action="{{ route('jenis-barang.update', $jenisBarang->id) }}">
+                        <form method="POST" action="{{ route('jenis-barang.update', $jenisBarang->jenis_barang_id) }}">
                             @csrf
                             @method('PUT')
                             <div class="mb-3">
                                 <label class="form-label">Nama Jenis Barang <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="nama" value="{{ $jenisBarang->nama }}" required>
+                                <input type="text" class="form-control" name="jenisbarang_nama" value="{{ $jenisBarang->jenisbarang_nama }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Keterangan</label>
-                                <textarea class="form-control" name="keterangan" rows="3">{{ $jenisBarang->keterangan }}</textarea>
+                                <textarea class="form-control" name="jenisbarang_ket" rows="3">{{ $jenisBarang->jenisbarang_ket }}</textarea>
                             </div>
                             <button type="submit" class="btn btn-success">Update</button>
                         </form>
@@ -126,7 +127,7 @@
         </div>
 
         {{-- Delete Modal --}}
-        <div class="modal fade" id="formDeleteJenisBarang{{ $jenisBarang->id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="formDeleteJenisBarang{{ $jenisBarang->jenis_barang_id }}" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -134,8 +135,8 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Hapus jenis barang "{{ $jenisBarang->nama }}"?</p>
-                        <form method="POST" action="{{ route('jenis-barang.delete', $jenisBarang->id) }}">
+                        <p>Hapus jenis barang "{{ $jenisBarang->jenisbarang_nama }}"?</p>
+                        <form method="POST" action="{{ route('jenis-barang.destroy', $jenisBarang->jenis_barang_id) }}">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-danger">Hapus</button>
@@ -163,6 +164,7 @@
                         <tr>
                             <th width="5%">No</th>
                             <th>Nama</th>
+                            <th>Slug</th>
                             <th>Keterangan</th>
                             <th width="15%">Aksi</th>
                         </tr>
@@ -171,20 +173,21 @@
                         @foreach ($jenisBarangs as $key => $jenisBarang)
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-                                <td>{{ $jenisBarang->nama }}</td>
-                                <td>{{ $jenisBarang->keterangan ?? '-' }}</td>
+                                <td>{{ $jenisBarang->jenisbarang_nama }}</td>
+                                <td>{{ $jenisBarang->jenisbarang_slug }}</td>
+                                <td>{{ $jenisBarang->jenisbarang_ket ?? '-' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
-                                            data-bs-target="#detailJenisBarang{{ $jenisBarang->id }}" title="Detail">
+                                            data-bs-target="#detailJenisBarang{{ $jenisBarang->jenis_barang_id }}" title="Detail">
                                             <i class="ph-eye"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
-                                            data-bs-target="#updateJenisBarang{{ $jenisBarang->id }}" title="Edit">
+                                            data-bs-target="#updateJenisBarang{{ $jenisBarang->jenis_barang_id }}" title="Edit">
                                             <i class="ph-pencil"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
-                                            data-bs-target="#formDeleteJenisBarang{{ $jenisBarang->id }}" title="Hapus">
+                                            data-bs-target="#formDeleteJenisBarang{{ $jenisBarang->jenis_barang_id }}" title="Hapus">
                                             <i class="ph-trash"></i>
                                         </button>
                                     </div>

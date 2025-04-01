@@ -12,9 +12,9 @@ class JenisBarangResource extends JsonResource
     {
         return [
             'jenis_barang_id' => $this->jenisbarang_id,
-            'nama' => $this->jenisbarang_nama,
-            'slug' => $this->jenisbarang_slug,
-            'keterangan' => $this->jenisbarang_ket,
+            'jenisbarang_nama' => $this->jenisbarang_nama,
+            'jenisbarang_slug' => $this->jenisbarang_slug,
+            'jenisbarang_ket' => $this->jenisbarang_ket,
             'created_at' => Carbon::parse($this->created_at)->translatedFormat('d F Y h:i A'),
             'updated_at' => Carbon::parse($this->updated_at)->translatedFormat('d F Y h:i A'),
         ];

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BarangKeluarController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\JenisBarangController;
+use App\Http\Controllers\BarangController;
 
 // Public Routes
 Route::get('/', function () {
@@ -59,7 +60,15 @@ Route::middleware(JwtAuth::class)->group(function () {
         Route::get('/{jenis_barang}/edit', [JenisBarangController::class, 'edit'])->name('jenis-barang.edit');
         Route::get('/updates', [JenisBarangController::class, 'getUpdates'])->name('jenis-barang.updates');
     });
-
+    //Barang Routes
+    Route::prefix('barang')->group(function() {
+        Route::get('/', [BarangController::class, 'index'])->name('barang.index');
+        Route::post('/create', [BarangController::class, 'create'])->name('barang.create');
+        Route::put('/{id}/update', [BarangController::class, 'update'])->name('barang.update');
+        Route::delete('/{id}/delete', [BarangController::class, 'delete'])->name('barang.delete');
+        Route::get('/{id}/barcode', [BarangController::class, 'generateBarcode'])->name('barang.barcode');
+        Route::get('/{id}/download-barcode', [BarangController::class, 'downloadBarcode'])->name('barang.download-barcode');
+    });
     // Logout Route
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');
 });
