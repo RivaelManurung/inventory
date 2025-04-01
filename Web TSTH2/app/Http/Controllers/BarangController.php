@@ -10,10 +10,10 @@ use Illuminate\Http\Request;
 
 class BarangController extends Controller
 {
-    private $auth_service, $barang_service,$jenis_barang_service, $satuan_service;
+    private $auth_service, $barang_service, $jenis_barang_service, $satuan_service;
 
     public function __construct(
-        AuthService $auth_service, 
+        AuthService $auth_service,
         BarangService $barang_service,
         JenisBarangService $jenis_barang_service,
         SatuanService $satuan_service
@@ -31,7 +31,10 @@ class BarangController extends Controller
             $barangs = $this->barang_service->getAllBarang();
             $satuans = $this->satuan_service->get_all_satuan();
             $jenisBarangs = $this->jenis_barang_service->get_all_jenis_barang();
-            
+
+            // Debug the barang data structure
+            // dd($barangs->first());
+
             return view('admin.barang.index', compact('data', 'barangs', 'satuans', 'jenisBarangs'));
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data barang: ' . $th->getMessage());
@@ -47,7 +50,7 @@ class BarangController extends Controller
             'jenisbarang_id' => 'required|exists:tbl_jenisbarang,jenisbarang_id',
             'klasifikasi_barang' => 'required|in:sekali_pakai,berulang'
         ]);
-        
+
         try {
             $result = $this->barang_service->createBarang($request->all());
             return redirect()->back()->with('success', 'Barang berhasil ditambahkan');
@@ -61,11 +64,11 @@ class BarangController extends Controller
         $request->validate([
             'barang_nama' => 'sometimes|string',
             'barang_harga' => 'sometimes|numeric',
-            'satuan_id' => 'sometimes|exists:tbl_satuan,satuan_id',
-            'jenisbarang_id' => 'sometimes|exists:tbl_jenisbarang,jenisbarang_id',
+            'satuan_id' => 'sometimes|numeric', // Just check type, not existence
+            'jenisbarang_id' => 'sometimes|numeric',
             'klasifikasi_barang' => 'sometimes|in:sekali_pakai,berulang'
         ]);
-        
+
         try {
             $result = $this->barang_service->updateBarang($request->all(), $id);
             return redirect()->back()->with('success', 'Barang berhasil diperbarui');
