@@ -54,44 +54,44 @@ class JenisBarangService
     }
 
     public function getUpdates($lastUpdate = null, $search = null, $perPage = 10)
-    {
-        try {
-            $token = Session::get('jwt_token');
-            $response = Http::withToken($token)
-                ->withoutRedirecting()
-                ->get(ApiConstant::BASE_URL . '/jenis-barang/updates', [
-                    'last_update' => $lastUpdate,
-                    'search' => $search,
-                    'per_page' => $perPage
-                ]);
+{
+    try {
+        $token = Session::get('jwt_token');
+        $response = Http::withToken($token)
+            ->withoutRedirecting()
+            ->get(ApiConstant::BASE_URL . '/jenis-barang/updates', [
+                'last_update' => $lastUpdate,
+                'search' => $search,
+                'per_page' => $perPage
+            ]);
 
-            $responseData = $response->json();
+        $responseData = $response->json();
 
-            if (!$response->successful() || !($responseData['success'] ?? false)) {
-                Log::error('Failed to get jenis barang updates', [
-                    'status' => $response->status(),
-                    'response' => $responseData
-                ]);
-                return [
-                    'success' => false,
-                    'message' => $responseData['message'] ?? 'Gagal mengambil update jenis barang'
-                ];
-            }
-
-            return [
-                'success' => true,
-                'data' => JenisBarangResource::collection($responseData['data']),
-                'meta' => $responseData['meta'] ?? null,
-                'last_update' => now()->toDateTimeString()
-            ];
-        } catch (\Exception $e) {
-            Log::error('Get jenis barang updates error: ' . $e->getMessage());
+        if (!$response->successful() || !($responseData['success'] ?? false)) {
+            Log::error('Failed to get jenis barang updates', [
+                'status' => $response->status(),
+                'response' => $responseData
+            ]);
             return [
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat mengambil update jenis barang'
+                'message' => $responseData['message'] ?? 'Gagal mengambil update jenis barang'
             ];
         }
+
+        return [
+            'success' => true,
+            'data' => JenisBarangResource::collection($responseData['data']),
+            'meta' => $responseData['meta'] ?? null,
+            'last_update' => now()->toDateTimeString()
+        ];
+    } catch (\Exception $e) {
+        Log::error('Get jenis barang updates error: ' . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Terjadi kesalahan saat mengambil update jenis barang'
+        ];
     }
+}
 
     public function create(array $data)
     {

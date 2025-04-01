@@ -1,168 +1,199 @@
 @extends('Master.Layout.app')
 
-@section('content')
-<div class="container-fluid">
-    <div class="card shadow mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="m-0 font-weight-bold text-primary">Daftar Jenis Barang</h6>
-            <a href="{{ route('jenis-barang.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Tambah
-            </a>
-        </div>
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="searchInput" 
-                               placeholder="Cari jenis barang..." value="{{ request('search') }}">
-                        <div class="input-group-append">
-                            <button class="btn btn-primary" id="searchButton">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 text-right">
-                    <select name="per_page" id="perPageSelect" class="form-control form-control-sm d-inline-block w-auto">
-                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10 per halaman</option>
-                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 per halaman</option>
-                        <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 per halaman</option>
-                    </select>
-                </div>
-            </div>
-
-            <div id="loadingIndicator" class="text-center py-3" style="display: none;">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
-                <p class="mt-2">Memuat data...</p>
-            </div>
-
-            <div id="tableContainer">
-                @include('admin.jenisbarang.partials.table', ['jenisBarangs' => $jenisBarangs])
-                @include('admin.jenisbarang.partials.pagination', ['jenisBarangs' => $jenisBarangs])
-            </div>
-        </div>
-    </div>
-</div>
+@section('title')
+    Jenis Barang
+@endsection
+@section('menu')
+    Home
+@endsection
+@section('icon')
+    <i class="ph-package"></i>
 @endsection
 
-@section('styles')
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+@push('styles')
 <style>
-    /* Gaya untuk pagination */
-    .pagination {
-        margin: 0;
+    /* Custom table styling */
+    #jenisBarangTable_wrapper .dataTables_filter input {
+        border-radius: 5px;
+        padding: 5px 10px;
+        border: 1px solid #ddd;
     }
-    .page-item.active .page-link {
-        background-color: #4e73df;
-        border-color: #4e73df;
-    }
-    .page-link {
-        color: #4e73df;
-    }
-    .pagination-info {
-        padding-top: 6px;
-        font-size: 0.9rem;
-        color: #6c757d;
-    }
-    /* Gaya untuk loading indicator */
-    #loadingIndicator {
-        background-color: rgba(255, 255, 255, 0.8);
-        position: absolute;
-        left: 0;
-        right: 0;
-        z-index: 100;
-    }
-    /* Gaya untuk tabel */
-    .table td, .table th {
-        vertical-align: middle;
+    #jenisBarangTable_wrapper .dataTables_length select {
+        border-radius: 5px;
+        padding: 5px;
+        border: 1px solid #ddd;
     }
     .btn-sm {
         padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
     }
 </style>
-@endsection
+@endpush
 
-@section('scripts')
+@push('resource')
 <script>
-$(document).ready(function() {
-    let typingTimer;
-    const doneTypingInterval = 500;
-    const $tableContainer = $('#tableContainer');
-    const $loadingIndicator = $('#loadingIndicator');
-    
-    // Fungsi untuk memuat data via AJAX
-    function loadData(search = '', perPage = 10, pageUrl = null) {
-        $loadingIndicator.show();
-        $tableContainer.hide();
-        
-        const url = pageUrl || '{{ route("jenis-barang.index") }}';
-        const params = {
-            search: search,
-            per_page: perPage,
-            ajax: 1
-        };
-        
-        $.ajax({
-            url: url,
-            type: 'GET',
-            data: params,
-            success: function(response) {
-                if (response.success) {
-                    $tableContainer.html(response.html + response.pagination);
-                } else {
-                    showError(response.message || 'Terjadi kesalahan');
-                }
-            },
-            error: function(xhr) {
-                showError(xhr.responseJSON?.message || 'Terjadi kesalahan server');
-            },
-            complete: function() {
-                $loadingIndicator.hide();
-                $tableContainer.show();
+    $(document).ready(function() {
+        $('#jenisBarangTable').DataTable({
+            responsive: true,
+            autoWidth: true,
+            paging: true,
+            lengthChange: true,
+            searching: true,
+            ordering: true,
+            info: true,
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
             }
         });
-    }
-    
-    // Fungsi untuk menampilkan error
-    function showError(message) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: message,
-            timer: 3000
-        });
-    }
-    
-    // Event untuk real-time search
-    $('#searchInput').on('keyup', function() {
-        clearTimeout(typingTimer);
-        typingTimer = setTimeout(function() {
-            loadData($('#searchInput').val(), $('#perPageSelect').val());
-        }, doneTypingInterval);
     });
-    
-    // Event untuk tombol search
-    $('#searchButton').on('click', function() {
-        loadData($('#searchInput').val(), $('#perPageSelect').val());
-    });
-    
-    // Event untuk perubahan per page
-    $('#perPageSelect').on('change', function() {
-        loadData($('#searchInput').val(), $(this).val());
-    });
-    
-    // Event untuk pagination (menggunakan event delegation)
-    $(document).on('click', '.pagination a', function(e) {
-        e.preventDefault();
-        loadData($('#searchInput').val(), $('#perPageSelect').val(), $(this).attr('href'));
-    });
-    
-    // Trigger load data pertama kali jika perlu
-    @if(request()->ajax())
-    loadData('{{ request('search') }}', '{{ request('per_page', 10) }}');
-    @endif
-});
 </script>
+@endpush
+
+@section('content')
+    {{-- Create Modal --}}
+    <div class="modal fade" id="formAddJenisBarang" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Jenis Barang</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('jenis-barang.create') }}" method="POST">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label">Nama Jenis Barang <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nama" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Keterangan</label>
+                            <textarea class="form-control" name="keterangan" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Simpan</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- View/Edit/Delete Modals --}}
+    @foreach ($jenisBarangs as $jenisBarang)
+        {{-- View Modal --}}
+        <div class="modal fade" id="detailJenisBarang{{ $jenisBarang->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Detail Jenis Barang</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Nama:</strong> {{ $jenisBarang->nama }}</p>
+                        <p><strong>Keterangan:</strong> {{ $jenisBarang->keterangan ?? '-' }}</p>
+                        <p><strong>Dibuat Pada:</strong> {{ $jenisBarang->created_at }}</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Edit Modal --}}
+        <div class="modal fade" id="updateJenisBarang{{ $jenisBarang->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Jenis Barang</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" action="{{ route('jenis-barang.update', $jenisBarang->id) }}">
+                            @csrf
+                            @method('PUT')
+                            <div class="mb-3">
+                                <label class="form-label">Nama Jenis Barang <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="nama" value="{{ $jenisBarang->nama }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Keterangan</label>
+                                <textarea class="form-control" name="keterangan" rows="3">{{ $jenisBarang->keterangan }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Delete Modal --}}
+        <div class="modal fade" id="formDeleteJenisBarang{{ $jenisBarang->id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Konfirmasi Hapus</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Hapus jenis barang "{{ $jenisBarang->nama }}"?</p>
+                        <form method="POST" action="{{ route('jenis-barang.delete', $jenisBarang->id) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">Hapus</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    {{-- Main Content --}}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Data Jenis Barang</h5>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#formAddJenisBarang">
+                <i class="ph-plus me-1"></i> Tambah
+            </button>
+        </div>
+        
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="jenisBarangTable" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th>Nama</th>
+                            <th>Keterangan</th>
+                            <th width="15%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($jenisBarangs as $key => $jenisBarang)
+                            <tr>
+                                <td>{{ $key + 1 }}</td>
+                                <td>{{ $jenisBarang->nama }}</td>
+                                <td>{{ $jenisBarang->keterangan ?? '-' }}</td>
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"
+                                            data-bs-target="#detailJenisBarang{{ $jenisBarang->id }}" title="Detail">
+                                            <i class="ph-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                            data-bs-target="#updateJenisBarang{{ $jenisBarang->id }}" title="Edit">
+                                            <i class="ph-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                            data-bs-target="#formDeleteJenisBarang{{ $jenisBarang->id }}" title="Hapus">
+                                            <i class="ph-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 @endsection

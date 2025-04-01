@@ -36,7 +36,7 @@ Route::middleware(JwtAuth::class)->group(function () {
     //     Route::delete('/{id}', [BarangKeluarController::class, 'destroy'])->name('barang-keluar.destroy');
     //     Route::get('/{id}/edit', [BarangKeluarController::class, 'edit'])->name('barang-keluar.edit');
     // });
-    
+
     // Satuan Routes
     Route::prefix('satuan')->group(function () {
         Route::get('/', [SatuanController::class, 'index'])->name('satuan.index');
@@ -57,6 +57,7 @@ Route::middleware(JwtAuth::class)->group(function () {
         Route::put('/{jenis_barang}', [JenisBarangController::class, 'update'])->name('jenis-barang.update');
         Route::delete('/{jenis_barang}', [JenisBarangController::class, 'destroy'])->name('jenis-barang.destroy');
         Route::get('/{jenis_barang}/edit', [JenisBarangController::class, 'edit'])->name('jenis-barang.edit');
+        Route::get('/updates', [JenisBarangController::class, 'getUpdates'])->name('jenis-barang.updates');
     });
 
     // Logout Route

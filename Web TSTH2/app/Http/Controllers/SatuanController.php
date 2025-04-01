@@ -1,141 +1,68 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Resources\SatuanResource;
+use App\Services\AuthService;
 use App\Services\SatuanService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class SatuanController extends Controller
 {
-    protected $satuanService;
+    private $auth_service, $satuan_service;
 
-    public function __construct(SatuanService $satuanService)
+    public function __construct(AuthService $auth_service, SatuanService $satuan_service)
     {
-        $this->satuanService = $satuanService;
+        $this->auth_service = $auth_service;
+        $this->satuan_service = $satuan_service;
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $search = $request->input('search');
-        $perPage = $request->input('per_page', 10);
-
-        $response = $this->satuanService->getAll($search, $perPage);
-        Log::info('Service response:', $response);
-
-        if ($request->wantsJson()) {
-            return response()->json($response);
+        try {
+            $data = $this->auth_service->getAuthenticatedUser();
+            $satuans = $this->satuan_service->get_all_satuan();
+            return view('Admin.Satuan.index', compact('data', 'satuans'));
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data satuan');
         }
+    }
 
-        // For web requests
-        if (!$response['success']) {
-            return redirect()->back()->with('error', $response['message']);
-        }
-
-        return view('admin.satuan.index', [
-            'satuans' => $response['data'] ?? [],
-            'search' => $search,
-            'pagination' => $response['meta'] ?? null
+    public function create(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string',
+            'keterangan' => 'nullable|string'
         ]);
-    }
-    public function getUpdates(Request $request)
-    {
-        $lastUpdate = $request->input('last_update');
-        $search = $request->input('search', '');
-        $perPage = $request->input('per_page', 10);
-
-        $response = $this->satuanService->getUpdates($lastUpdate, $search, $perPage);
-
-        return response()->json($response);
+        
+        try {
+            $result = $this->satuan_service->create_satuan($request->nama, $request->keterangan);
+            return redirect()->back()->with('success', 'Satuan berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal menambahkan satuan: ' . $th->getMessage());
+        }
     }
 
-    public function store(Request $request)
+    public function update(Request $request, int $id)
     {
-        $data = $request->validate([
-            'satuan_nama' => 'required|string',
-            'satuan_slug' => 'required|string',
-            'satuan_keterangan' => 'nullable|string',
+        $request->validate([
+            'nama' => 'required|string',
+            'keterangan' => 'nullable|string'
         ]);
-
-        $response = $this->satuanService->create($data);
-
-        if ($request->wantsJson()) {
-            return response()->json($response);
+        
+        try {
+            $result = $this->satuan_service->update_satuan($id, $request->nama, $request->keterangan);
+            return redirect()->back()->with('success', 'Satuan berhasil diperbarui');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal memperbarui satuan: ' . $th->getMessage());
         }
-
-        if ($response['success']) {
-            return redirect()->route('satuan.index')
-                ->with('success', 'Satuan berhasil ditambahkan');
-        }
-
-        return back()->withErrors($response['errors'] ?? ['message' => $response['message'] ?? 'Gagal menambahkan satuan']);
     }
 
-    public function show($id, Request $request)
+    public function delete(int $id)
     {
-        $response = $this->satuanService->getById($id);
-
-        if ($request->wantsJson()) {
-            return response()->json($response);
+        try {
+            $result = $this->satuan_service->delete_satuan($id);
+            return redirect()->back()->with('success', 'Satuan berhasil dihapus');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', 'Gagal menghapus satuan: ' . $th->getMessage());
         }
-
-        if (!$response['success']) {
-            if ($request->ajax()) {
-                return response()->json($response, 404);
-            }
-            abort(404);
-        }
-
-        return view('admin.satuan.show', [
-            'satuan' => new SatuanResource((object)$response['data'])
-        ]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $data = $request->validate([
-            'satuan_nama' => 'required|string',
-            'satuan_slug' => 'required|string',
-            'satuan_keterangan' => 'nullable|string',
-        ]);
-
-        $response = $this->satuanService->update($id, $data);
-
-        if ($request->wantsJson()) {
-            return response()->json($response);
-        }
-
-        if ($response['success']) {
-            return redirect()->route('satuan.index')
-                ->with('success', 'Satuan berhasil diperbarui');
-        }
-
-        return back()->withErrors($response['errors'] ?? ['message' => $response['message'] ?? 'Gagal memperbarui satuan']);
-    }
-
-    public function destroy($id, Request $request)
-    {
-        $response = $this->satuanService->delete($id);
-
-        if ($request->wantsJson()) {
-            return response()->json($response);
-        }
-
-        if ($response['success']) {
-            return redirect()->route('satuan.index')
-                ->with('success', 'Satuan berhasil dihapus');
-        }
-
-        return back()->withErrors(['message' => $response['message'] ?? 'Gagal menghapus satuan']);
-    }
-
-    public function search(Request $request)
-    {
-        $query = $request->input('query');
-        $response = $this->satuanService->search($query);
-
-        return response()->json($response);
     }
 }
