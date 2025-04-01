@@ -10,43 +10,10 @@ Home
 <i class="ph-package"></i>
 @endsection
 
-@push('styles')
-<style>
-    /* Custom table styling */
-    #jenisBarangTable_wrapper .dataTables_filter input {
-        border-radius: 5px;
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-    }
-
-    #jenisBarangTable_wrapper .dataTables_length select {
-        border-radius: 5px;
-        padding: 5px;
-        border: 1px solid #ddd;
-    }
-
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
-</style>
-@endpush
-
 @push('resource')
 <script>
     $(document).ready(function() {
-        $('#jenisBarangTable').DataTable({
-            responsive: true,
-            autoWidth: true,
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-            }
-        });
+        $('#jenisBarangTable').DataTable();
     });
 </script>
 @endpush
@@ -71,6 +38,7 @@ Home
                         <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label">Keterangan</label>
                         <textarea class="form-control @error('jenisbarang_ket') is-invalid @enderror"
@@ -115,7 +83,7 @@ Home
         @endif
 
         <div class="table-responsive">
-            <table id="jenisBarangTable" class="table table-striped table-bordered" style="width:100%">
+            <table id="jenisBarangTable" class="display">
                 <thead>
                     <tr>
                         <th width="5%">No</th>

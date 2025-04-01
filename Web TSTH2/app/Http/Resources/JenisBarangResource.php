@@ -11,7 +11,7 @@ class JenisBarangResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'jenis_barang_id' => $this->jenisbarang_id,
+            'jenisbarang_id' => $this->jenisbarang_id,
             'jenisbarang_nama' => $this->jenisbarang_nama,
             'jenisbarang_slug' => $this->jenisbarang_slug,
             'jenisbarang_ket' => $this->jenisbarang_ket,

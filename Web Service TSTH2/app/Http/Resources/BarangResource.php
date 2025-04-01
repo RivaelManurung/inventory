@@ -21,8 +21,8 @@ class BarangResource extends JsonResource
             'barang_slug' => $this->barang_slug,
             'barang_harga' => $this->barang_harga,
             'klasifikasi_barang' => $this->klasifikasi_barang,
-            'satuan_id' => $this->satuan_id,
-            'jenisbarang_id' => $this->jenisbarang_id,
+            'satuan' => $this->satuan,
+            'jenisbarang' => $this->jenisbarang,
             'user_id' => $this->user_id,
             'created_by' => optional($this->createdBy)->username,
             'updated_by' => optional($this->updatedBy)->username,
@@ -32,3 +32,4 @@ class BarangResource extends JsonResource
         ];
     }
 }
+

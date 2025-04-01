@@ -16,23 +16,15 @@ class JenisBarangService
         $this->repository = $repository;
     }
 
-    public function getAll(array $params): array
+    public function getAll(): array
     {
         try {
-            $data = $this->repository->getAll(
-                $params['search'] ?? null,
-                $params['per_page'] ?? 10
-            );
+            $data = $this->repository->getAll();
 
             return [
                 'success' => true,
                 'data' => JenisBarangResource::collection($data),
-                'meta' => [
-                    'current_page' => $data->currentPage(),
-                    'total' => $data->total(),
-                    'per_page' => $data->perPage(),
-                    'last_page' => $data->lastPage()
-                ]
+                
             ];
         } catch (\Exception $e) {
             return [

@@ -30,12 +30,12 @@ class BarangController extends Controller
             $data = $this->auth_service->getAuthenticatedUser();
             $barangs = $this->barang_service->getAllBarang();
             $satuans = $this->satuan_service->get_all_satuan();
-            $jenisBarangs = $this->jenis_barang_service->get_all_jenis_barang();
+            $jbs = $this->jenis_barang_service->get_all_jenis_barang();
 
             // Debug the barang data structure
             // dd($barangs->first());
 
-            return view('admin.barang.index', compact('data', 'barangs', 'satuans', 'jenisBarangs'));
+            return view('admin.barang.index', compact('data', 'barangs', 'satuans', 'jbs'));
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data barang: ' . $th->getMessage());
         }

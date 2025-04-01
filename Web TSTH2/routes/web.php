@@ -8,6 +8,7 @@ use App\Http\Controllers\BarangKeluarController;
 use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\JenisBarangController;
 use App\Http\Controllers\BarangController;
+use App\Http\Controllers\GudangController;
 
 // Public Routes
 Route::get('/', function () {
@@ -61,13 +62,22 @@ Route::middleware(JwtAuth::class)->group(function () {
         Route::get('/updates', [JenisBarangController::class, 'getUpdates'])->name('jenis-barang.updates');
     });
     //Barang Routes
-    Route::prefix('barang')->group(function() {
+    Route::prefix('barang')->group(function () {
         Route::get('/', [BarangController::class, 'index'])->name('barang.index');
         Route::post('/create', [BarangController::class, 'create'])->name('barang.create');
         Route::put('/{id}/update', [BarangController::class, 'update'])->name('barang.update');
         Route::delete('/{id}/delete', [BarangController::class, 'delete'])->name('barang.delete');
         Route::get('/{id}/barcode', [BarangController::class, 'generateBarcode'])->name('barang.barcode');
         Route::get('/{id}/download-barcode', [BarangController::class, 'downloadBarcode'])->name('barang.download-barcode');
+    });
+    //Gudang Routes
+    Route::prefix('gudang')->group(function () {
+        Route::get('/', [GudangController::class, 'index'])->name('gudang.index');
+        Route::post('/create', [GudangController::class, 'create'])->name('gudang.create');
+        Route::put('/{id}/update', [GudangController::class, 'update'])->name('gudang.update');
+        Route::delete('/{id}/delete', [GudangController::class, 'delete'])->name('gudang.delete');
+        Route::get('/{id}/barcode', [GudangController::class, 'generateBarcode'])->name('gudang.barcode');
+        Route::get('/{id}/download-barcode', [GudangController::class, 'downloadBarcode'])->name('gudang.download-barcode');
     });
     // Logout Route
     Route::post('/logout', [WebAuthController::class, 'logout'])->name('logout');

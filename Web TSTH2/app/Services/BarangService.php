@@ -17,29 +17,29 @@ class BarangService
     }
 
     public function getAllBarang()
-{
-    try {
-        $token = Session::get('jwt_token');
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer {$token}",
-        ])->get("{$this->api_url}/barang");
+    {
+        try {
+            $token = Session::get('jwt_token');
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer {$token}",
+            ])->get("{$this->api_url}/barang");
 
-        $result = $response->json();
-        
-        if ($response->failed()) {
-            return collect();
+            $result = $response->json();
+
+            if ($response->failed()) {
+                return collect();
+            }
+
+            // Convert to objects
+            $collection = collect($result['data'])->map(function ($item) {
+                return (object)$item; // Convert to object
+            });
+
+            return BarangResource::collection($collection);
+        } catch (\Throwable $th) {
+            throw new \Exception($th->getMessage());
         }
-        
-        // Convert to objects
-        $collection = collect($result['data'])->map(function ($item) {
-            return (object)$item; // Convert to object
-        });
-        
-        return BarangResource::collection($collection);
-    } catch (\Throwable $th) {
-        throw new \Exception($th->getMessage());
     }
-}
 
     public function getDetailBarang(int $id)
     {

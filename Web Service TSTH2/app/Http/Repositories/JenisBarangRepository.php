@@ -7,16 +7,10 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class JenisBarangRepository
 {
-    public function getAll(?string $search = null, int $perPage = 10): LengthAwarePaginator
+    public function getAll()
     {
-        $query = JenisBarang::query();
+        return JenisBarang::get();
 
-        if ($search) {
-            $query->where('nama', 'like', '%'.$search.'%')
-                  ->orWhere('keterangan', 'like', '%'.$search.'%');
-        }
-
-        return $query->paginate($perPage);
     }
 
     public function findById(int $id): ?JenisBarang

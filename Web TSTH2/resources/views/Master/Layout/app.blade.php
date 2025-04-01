@@ -11,11 +11,12 @@
     <link href="{{ asset('assets/fonts/inter/inter.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/icons/phosphor/styles.min.css') }}" rel="stylesheet">
     <link href="{{ asset('assets/css/ltr/all.min.css') }}" id="stylesheet" rel="stylesheet">
-    
+
     <!-- Third-party CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css" />
 
     <!-- Core JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -26,6 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
 
     <!-- Theme JS files -->
     <script src="{{ asset('assets/demo/demo_configurator.js') }}"></script>
@@ -42,6 +44,8 @@
     <script src="{{ asset('assets/demo/charts/pages/dashboard/heatmaps.js') }}"></script>
     <script src="{{ asset('assets/demo/charts/pages/dashboard/pies.js') }}"></script>
     <script src="{{ asset('assets/demo/charts/pages/dashboard/bullets.js') }}"></script>
+
+    @stack('resource')
 </head>
 
 <body>

@@ -43,52 +43,52 @@ class JenisBarangService
     }
 
     public function create_jenis_barang(string $nama, string $keterangan = null)
-{
-    try {
-        $token = Session::get('jwt_token');
-        if (!$token) {
-            throw new \Exception('Token tidak tersedia, silakan login kembali');
-        }
-
-        // Generate slug from nama
-        $slug = Str::slug($nama);
-        
-        $requestData = [
-            'jenisbarang_nama' => $nama,
-            'jenisbarang_slug' => $slug,  // Add slug to request
-            'jenisbarang_ket' => $keterangan
-        ];
-
-        Log::debug('Create Request Data:', $requestData);
-
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer {$token}",
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json'
-        ])->post("{$this->api_url}/jenis-barang", $requestData);
-
-        $responseData = $response->json();
-        
-        if ($response->status() === 422) {
-            $errorMessages = [];
-            if (isset($responseData['errors'])) {
-                foreach ($responseData['errors'] as $field => $messages) {
-                    $errorMessages[] = "$field: " . implode(', ', (array)$messages);
-                }
+    {
+        try {
+            $token = Session::get('jwt_token');
+            if (!$token) {
+                throw new \Exception('Token tidak tersedia, silakan login kembali');
             }
-            throw new \Exception(implode(' | ', $errorMessages));
-        }
 
-        if ($response->failed()) {
-            throw new \Exception($responseData['message'] ?? 'Gagal menambahkan jenis barang');
-        }
+            // Generate slug from nama
+            $slug = Str::slug($nama);
 
-        return $responseData;
-    } catch (\Throwable $th) {
-        Log::error('Create Error: ' . $th->getMessage());
-        throw new \Exception('Terjadi kesalahan: ' . $th->getMessage());
+            $requestData = [
+                'jenisbarang_nama' => $nama,
+                'jenisbarang_slug' => $slug,  // Add slug to request
+                'jenisbarang_ket' => $keterangan
+            ];
+
+            Log::debug('Create Request Data:', $requestData);
+
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer {$token}",
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ])->post("{$this->api_url}/jenis-barang", $requestData);
+
+            $responseData = $response->json();
+
+            if ($response->status() === 422) {
+                $errorMessages = [];
+                if (isset($responseData['errors'])) {
+                    foreach ($responseData['errors'] as $field => $messages) {
+                        $errorMessages[] = "$field: " . implode(', ', (array)$messages);
+                    }
+                }
+                throw new \Exception(implode(' | ', $errorMessages));
+            }
+
+            if ($response->failed()) {
+                throw new \Exception($responseData['message'] ?? 'Gagal menambahkan jenis barang');
+            }
+
+            return $responseData;
+        } catch (\Throwable $th) {
+            Log::error('Create Error: ' . $th->getMessage());
+            throw new \Exception('Terjadi kesalahan: ' . $th->getMessage());
+        }
     }
-}
 
     public function update_jenis_barang(int $id, string $nama, string $keterangan = null)
     {

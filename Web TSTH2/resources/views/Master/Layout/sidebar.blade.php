@@ -46,6 +46,8 @@
                                 class="nav-link {{ Request::is('satuan') ? 'active' : '' }}">Satuan</a></li>
                         <li class="nav-item"><a href="{{ url('/barang') }}"
                                 class="nav-link {{ Request::is('barang') ? 'active' : '' }}">Barang</a></li>
+                        <li class="nav-item"><a href="{{ url('/gudang') }}"
+                                class="nav-link {{ Request::is('gudang') ? 'active' : '' }}">Gudang</a></li>
                     </ul>
                 </li>
                 <li class="nav-item">

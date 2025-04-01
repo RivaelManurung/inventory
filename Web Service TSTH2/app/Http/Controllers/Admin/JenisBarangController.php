@@ -16,9 +16,9 @@ class JenisBarangController extends Controller
         $this->service = $service;
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $response = $this->service->getAll($request->all());
+        $response = $this->service->getAll();
         
         if (!$response['success']) {
             return response()->json($response, 500);
@@ -27,7 +27,6 @@ class JenisBarangController extends Controller
         return response()->json([
             'success' => true,
             'data' => $response['data'],
-            'meta' => $response['meta'] ?? null
         ]);
     }
 

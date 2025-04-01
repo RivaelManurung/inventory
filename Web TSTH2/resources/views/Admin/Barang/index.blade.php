@@ -12,53 +12,10 @@ Home
 <i class="ph-package"></i>
 @endsection
 
-@push('styles')
-<style>
-    /* Custom table styling */
-    #barangTable_wrapper .dataTables_filter input {
-        border-radius: 5px;
-        padding: 5px 10px;
-        border: 1px solid #ddd;
-    }
-
-    #barangTable_wrapper .dataTables_length select {
-        border-radius: 5px;
-        padding: 5px;
-        border: 1px solid #ddd;
-    }
-
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
-
-    .badge-sekali_pakai {
-        background-color: #f44336;
-        color: white;
-    }
-
-    .badge-berulang {
-        background-color: #4CAF50;
-        color: white;
-    }
-</style>
-@endpush
-
 @push('resource')
 <script>
     $(document).ready(function() {
-        $('#barangTable').DataTable({
-            responsive: true,
-            autoWidth: true,
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            language: {
-                url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-            }
-        });
+        $('#barangTable').DataTable();
     });
 </script>
 @endpush
@@ -116,19 +73,14 @@ Home
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
-                        <select class="form-select @error('jenisbarang_id') is-invalid @enderror" name="jenisbarang_id"
-                            required>
+                        <select class="form-select" name="jenisbarang_id" required>
                             <option value="">Pilih Jenis Barang</option>
-                            @foreach($jenisBarangs as $jenisBarang)
-                            <option value="{{ $jenisBarang->jenis_barang_id }}" {{ old('jenisbarang_id')==$jenisBarang->
-                                jenis_barang_id ? 'selected' : '' }}>
-                                {{ $jenisBarang->jenisbarang_nama }}
+                            @foreach ($jbs as $jb)
+                            <option value="{{ $jb->jenis_barang_id }}">{{ $jb->jenisbarang_nama }}
                             </option>
                             @endforeach
                         </select>
-                        @error('jenisbarang_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
+
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Klasifikasi <span class="text-danger">*</span></label>
@@ -136,7 +88,8 @@ Home
                             name="klasifikasi_barang" required>
                             <option value="">Pilih Klasifikasi</option>
                             <option value="sekali_pakai" {{ old('klasifikasi_barang')=='sekali_pakai' ? 'selected' : ''
-                                }}>Sekali Pakai</option>
+                                }}>
+                                Sekali Pakai</option>
                             <option value="berulang" {{ old('klasifikasi_barang')=='berulang' ? 'selected' : '' }}>
                                 Berulang</option>
                         </select>
@@ -199,8 +152,8 @@ Home
                         <td>{{ $barang->barang_kode }}</td>
                         <td>{{ $barang->barang_nama }}</td>
                         <td>Rp {{ number_format($barang->barang_harga, 0, ',', '.') }}</td>
-                        <td>{{ $barang->satuan->satuan_nama ?? '-' }}</td>
-                        <td>{{ $barang->jenisBarang->jenisbarang_nama ?? '-' }}</td>
+                        <td>{{ $barang->satuan['satuan_nama'] }}</td>
+                        <td>{{ $barang->jenisbarang['jenisbarang_nama'] }}</td>
                         <td>
                             <span
                                 class="badge {{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'badge-sekali_pakai' : 'badge-berulang' }}">
@@ -260,11 +213,11 @@ Home
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-4 fw-bold">Satuan:</div>
-                    <div class="col-md-8">{{ $barang->satuan->satuan_nama ?? '-' }}</div>
+                    <div class="col-md-8">{{ $barang->satuan['satuan_nama'] }}</div>
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-4 fw-bold">Jenis Barang:</div>
-                    <div class="col-md-8">{{ $barang->jenisBarang->jenisbarang_nama ?? '-' }}</div>
+                    <div class="col-md-8">{{ $barang->jenisbarang['jenisbarang_id'] }}</div>
                 </div>
                 <div class="row mb-3">
                     <div class="col-md-4 fw-bold">Klasifikasi:</div>
@@ -347,19 +300,13 @@ Home
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
-                        <select class="form-select @error('jenisbarang_id') is-invalid @enderror" name="jenisbarang_id"
-                            required>
+                        <select class="form-select " name="jenisbarang_id" required>
                             <option value="">Pilih Jenis Barang</option>
-                            @foreach($jenisBarangs as $jenisBarang)
-                            <option value="{{ $jenisBarang->jenis_barang_id }}" {{ (old('jenisbarang_id', $barang->
-                                jenisbarang_id) == $jenisBarang->jenis_barang_id) ? 'selected' : '' }}>
-                                {{ $jenisBarang->jenisbarang_nama }}
+                            @foreach ($jbs as $jb)
+                            <option value="{{ $jb->jenis_barang_id }}">{{ $jb->jenisbarang_nama }}
                             </option>
                             @endforeach
                         </select>
-                        @error('jenisbarang_id')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Klasifikasi <span class="text-danger">*</span></label>
