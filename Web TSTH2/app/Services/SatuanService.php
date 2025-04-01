@@ -1,8 +1,8 @@
 <?php
+
 namespace App\Services;
 
 use App\Http\Constant\ApiConstant;
-use App\Http\Constant\TokenConstant;
 use App\Http\Resources\SatuanResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
@@ -10,9 +10,8 @@ use Illuminate\Support\Facades\Session;
 class SatuanService
 {
     private $api_url;
-    private $token;
 
-    public function __construct(TokenConstant $token)
+    public function __construct()
     {
         $this->api_url = ApiConstant::BASE_URL;
     }
@@ -20,19 +19,19 @@ class SatuanService
     public function get_all_satuan()
     {
         try {
-            $token = Session::get(key: 'jwt_token');
+            $token = Session::get('jwt_token');
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
             ])->get("{$this->api_url}/satuan");
 
-            $result = $response->json();
             if ($response->failed()) {
                 return collect();
             }
-            $collection = collect($result['data'])->map(function ($item) {
+
+            $result = $response->json();
+            return collect($result['data'])->map(function ($item) {
                 return (object) $item;
             });
-            return SatuanResource::collection($collection);
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -41,22 +40,21 @@ class SatuanService
     public function create_satuan(string $nama, string $keterangan = null)
     {
         try {
-            $token = Session::get(key: 'jwt_token');
+            $token = Session::get('jwt_token');
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
-            ])->post("{$this->api_url}/satuan/create", [
-                'nama' => $nama,
-                'keterangan' => $keterangan
+            ])->post("{$this->api_url}/satuan", [
+                'satuan_nama' => $nama,
+                'satuan_keterangan' => $keterangan
             ]);
 
             $result = $response->json();
 
             if ($response->failed()) {
-                throw new \Exception($result['message']);
+                throw new \Exception($result['message'] ?? 'Failed to create satuan');
             }
 
-            return new SatuanResource($result);
-
+            return $result;
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -65,21 +63,21 @@ class SatuanService
     public function update_satuan(int $id, string $nama, string $keterangan = null)
     {
         try {
-            $token = Session::get(key: 'jwt_token');
+            $token = Session::get('jwt_token');
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
-            ])->put("{$this->api_url}/satuan/{$id}/edit", [
-                'nama' => $nama,
-                'keterangan' => $keterangan
+            ])->put("{$this->api_url}/satuan/{$id}", [
+                'satuan_nama' => $nama,
+                'satuan_keterangan' => $keterangan
             ]);
 
             $result = $response->json();
 
             if ($response->failed()) {
-                throw new \Exception($result['message']);
+                throw new \Exception($result['message'] ?? 'Failed to update satuan');
             }
 
-            return new SatuanResource($result);
+            return $result;
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }
@@ -88,18 +86,17 @@ class SatuanService
     public function delete_satuan(int $id)
     {
         try {
-            $token = Session::get(key: 'jwt_token');
+            $token = Session::get('jwt_token');
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
-            ])->delete("{$this->api_url}/satuan/{$id}/delete");
-
-            $result = $response->json();
+            ])->delete("{$this->api_url}/satuan/{$id}");
 
             if ($response->failed()) {
-                throw new \Exception($result['message']);
+                $result = $response->json();
+                throw new \Exception($result['message'] ?? 'Failed to delete satuan');
             }
 
-            return $result;
+            return true;
         } catch (\Throwable $th) {
             throw new \Exception($th->getMessage());
         }

@@ -72,9 +72,10 @@ class JenisBarangService
     {
         try {
             $validator = Validator::make($data, [
-                'nama' => 'required|string|unique:tbl_jenisbarang,jenisbarang_nama',
-                'keterangan' => 'nullable|string'
+                'jenisbarang_nama' => 'required|string|unique:tbl_jenisbarang,jenisbarang_nama',
+                'jenisbarang_ket' => 'nullable|string'
             ]);
+            
 
             if ($validator->fails()) {
                 throw new ValidationException($validator);
@@ -93,13 +94,14 @@ class JenisBarangService
                 'errors' => $e->errors(),
                 'message' => 'Validasi gagal'
             ];
-        } catch (\Exception $e) {
+        } catch (ValidationException $e) {
             return [
                 'success' => false,
-                'message' => 'Gagal menambahkan jenis barang',
-                'error' => $e->getMessage()
+                'errors' => $e->validator->errors()->toArray(), // Ambil error dengan cara yang benar
+                'message' => 'Validasi gagal'
             ];
         }
+        
     }
 
     public function update(int $id, array $data): array
@@ -115,7 +117,7 @@ class JenisBarangService
             }
 
             $validator = Validator::make($data, [
-                'nama' => 'sometimes|string|unique:tbl_jenisbarang,jenisbarang_nama,'.$id.',jenisbarang_id',
+                'nama' => 'sometimes|string|unique:tbl_jenisbarang,jenisbarang_nama,' . $id . ',jenisbarang_id',
                 'keterangan' => 'nullable|string'
             ]);
 

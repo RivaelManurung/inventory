@@ -96,7 +96,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    <form id="logoutForm" action="{{ route('logout') }}" method="POST">
                         @csrf
                     </form>
                     <a href="#" class="nav-link text-danger"

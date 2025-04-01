@@ -110,11 +110,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p><strong>Nama:</strong> {{ $barang->nama }}</p>
-                        <p><strong>Harga:</strong> Rp {{ number_format($barang->harga, 0, ',', '.') }}</p>
+                        <p><strong>Nama:</strong> {{ $barang->barang_nama }}</p>
+                        <p><strong>Harga:</strong> Rp {{ number_format($barang->barang_harga, 0, ',', '.') }}</p>
                         <p><strong>Satuan:</strong> {{ $barang->satuan->satuan_nama ?? '-' }}</p>
                         <p><strong>Jenis Barang:</strong> {{ $barang->jenisBarang->jenisbarang_nama ?? '-' }}</p>
-                        <p><strong>Klasifikasi:</strong> {{ $barang->klasifikasi == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}</p>
+                        <p><strong>Klasifikasi:</strong> {{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}</p>
                         <p><strong>Dibuat Pada:</strong> {{ $barang->created_at }}</p>
                     </div>
                     <div class="modal-footer">
@@ -138,11 +138,11 @@
                             @method('PUT')
                             <div class="mb-3">
                                 <label class="form-label">Nama Barang <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="barang_nama" value="{{ $barang->nama }}" required>
+                                <input type="text" class="form-control" name="barang_nama" value="{{ $barang->barang_nama }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Harga <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" name="barang_harga" value="{{ $barang->harga }}" required>
+                                <input type="number" class="form-control" name="barang_harga" value="{{ $barang->barang_harga }}" required>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Satuan <span class="text-danger">*</span></label>
@@ -158,7 +158,7 @@
                                 <label class="form-label">Jenis Barang <span class="text-danger">*</span></label>
                                 <select class="form-select" name="jenisbarang_id" required>
                                     @foreach($jenisBarangs as $jenisBarang)
-                                        <option value="{{ $jenisBarang->jenis_barang_id }}" {{ $jenisBarang->jenis_barang_id == $barang->jenis_barang_id ? 'selected' : '' }}>
+                                        <option value="{{ $jenisBarang->jenis_barang_id }}" {{ $jenisBarang->jenis_barang_id == $barang->jenisbarang_id ? 'selected' : '' }}>
                                             {{ $jenisBarang->jenisbarang_nama }}
                                         </option>
                                     @endforeach
@@ -167,8 +167,8 @@
                             <div class="mb-3">
                                 <label class="form-label">Klasifikasi <span class="text-danger">*</span></label>
                                 <select class="form-select" name="klasifikasi_barang" required>
-                                    <option value="sekali_pakai" {{ $barang->klasifikasi == 'sekali_pakai' ? 'selected' : '' }}>Sekali Pakai</option>
-                                    <option value="berulang" {{ $barang->klasifikasi == 'berulang' ? 'selected' : '' }}>Berulang</option>
+                                    <option value="sekali_pakai" {{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'selected' : '' }}>Sekali Pakai</option>
+                                    <option value="berulang" {{ $barang->klasifikasi_barang == 'berulang' ? 'selected' : '' }}>Berulang</option>
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-success">Update</button>
@@ -187,7 +187,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Hapus barang "{{ $barang->nama }}"?</p>
+                        <p>Hapus barang "{{ $barang->barang_nama }}"?</p>
                         <form method="POST" action="{{ route('barang.delete', $barang->barang_id) }}">
                             @csrf
                             @method('DELETE')
@@ -227,11 +227,11 @@
                         @foreach ($barangs as $key => $barang)
                             <tr>
                                 <td>{{ $key + 1 }}</td>
-                                <td>{{ $barang->nama }}</td>
-                                <td>Rp {{ number_format($barang->harga, 0, ',', '.') }}</td>
+                                <td>{{ $barang->barang_nama }}</td>
+                                <td>Rp {{ number_format($barang->barang_harga, 0, ',', '.') }}</td>
                                 <td>{{ $barang->satuan->satuan_nama ?? '-' }}</td>
                                 <td>{{ $barang->jenisBarang->jenisbarang_nama ?? '-' }}</td>
-                                <td>{{ $barang->klasifikasi == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}</td>
+                                <td>{{ $barang->klasifikasi_barang == 'sekali_pakai' ? 'Sekali Pakai' : 'Berulang' }}</td>
                                 <td class="text-center">
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal"

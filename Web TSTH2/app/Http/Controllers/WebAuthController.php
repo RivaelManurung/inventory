@@ -83,18 +83,26 @@ class WebAuthController extends Controller
 
 
     public function logout(Request $request)
-    {
-        $token = $request->bearerToken();
-        $logoutResult = ['success' => false, 'message' => 'No token found'];
-
-        if ($token) {
-            $logoutResult = $this->authService->logout($token);
+{
+    try {
+        $token = session('jwt_token');
+        
+        if (!$token) {
+            return redirect('/login')->with('error', 'No active session found');
         }
 
-        Log::info('User logged out', ['token' => $token]);
+        $logoutResult = $this->authService->logout($token);
+        
+        if ($logoutResult) {
+            $request->session()->forget('jwt_token');
+            return redirect('/login')->with('success', 'Logged out successfully');
+        }
 
-        return response()->json($logoutResult);
+        return redirect('/login')->with('error', 'Failed to logout');
+    } catch (\Exception $e) {
+        return redirect('/login')->with('error', 'Error during logout');
     }
+}
 
     public function getCurrentUser(Request $request)
     {

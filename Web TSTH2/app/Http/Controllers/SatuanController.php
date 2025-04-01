@@ -34,7 +34,7 @@ class SatuanController extends Controller
         ]);
         
         try {
-            $result = $this->satuan_service->create_satuan($request->nama, $request->keterangan);
+            $this->satuan_service->create_satuan($request->nama, $request->keterangan);
             return redirect()->back()->with('success', 'Satuan berhasil ditambahkan');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Gagal menambahkan satuan: ' . $th->getMessage());
@@ -49,7 +49,7 @@ class SatuanController extends Controller
         ]);
         
         try {
-            $result = $this->satuan_service->update_satuan($id, $request->nama, $request->keterangan);
+            $this->satuan_service->update_satuan($id, $request->nama, $request->keterangan);
             return redirect()->back()->with('success', 'Satuan berhasil diperbarui');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Gagal memperbarui satuan: ' . $th->getMessage());
@@ -59,7 +59,7 @@ class SatuanController extends Controller
     public function delete(int $id)
     {
         try {
-            $result = $this->satuan_service->delete_satuan($id);
+            $this->satuan_service->delete_satuan($id);
             return redirect()->back()->with('success', 'Satuan berhasil dihapus');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Gagal menghapus satuan: ' . $th->getMessage());

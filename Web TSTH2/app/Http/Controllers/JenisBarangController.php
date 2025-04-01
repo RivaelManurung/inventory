@@ -23,52 +23,52 @@ class JenisBarangController extends Controller
             $jenisBarangs = $this->jenis_barang_service->get_all_jenis_barang();
             return view('admin.jenisbarang.index', compact('data', 'jenisBarangs'));
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data jenis barang');
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data jenis barang: ' . $th->getMessage());
         }
     }
 
-    public function create(Request $request)
+    public function store(Request $request)
+{
+    $request->validate([
+        'jenisbarang_nama' => 'required|string|max:255',
+        'jenisbarang_ket' => 'nullable|string'
+    ]);
+
+    try {
+        $result = $this->jenis_barang_service->create_jenis_barang(
+            $request->jenisbarang_nama,
+            $request->jenisbarang_ket
+        );
+        return redirect()->route('jenis-barang.index')->with('success', 'Jenis barang berhasil ditambahkan');
+    } catch (\Throwable $th) {
+        return redirect()->back()->withInput()->with('error', $th->getMessage());
+    }
+}
+
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'jenisbarang_nama' => 'required|string',
+        $validated = $request->validate([
+            'jenisbarang_nama' => 'required|string|max:255',
             'jenisbarang_ket' => 'nullable|string'
         ]);
-        
+
         try {
-            $result = $this->jenis_barang_service->create_jenis_barang(
-                $request->jenisbarang_nama, 
-                $request->jenisbarang_ket
+            $this->jenis_barang_service->update_jenis_barang(
+                $id,
+                $validated['jenisbarang_nama'],
+                $validated['jenisbarang_ket'] ?? null
             );
-            return redirect()->back()->with('success', 'Jenis barang berhasil ditambahkan');
+            return redirect()->route('jenis-barang.index')->with('success', 'Jenis barang berhasil diperbarui');
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Gagal menambahkan jenis barang: ' . $th->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Gagal memperbarui jenis barang: ' . $th->getMessage());
         }
     }
 
-    public function update(Request $request, int $id)
-    {
-        $request->validate([
-            'jenisbarang_nama' => 'required|string',
-            'jenisbarang_ket' => 'nullable|string'
-        ]);
-        
-        try {
-            $result = $this->jenis_barang_service->update_jenis_barang(
-                $id, 
-                $request->jenisbarang_nama, 
-                $request->jenisbarang_ket
-            );
-            return redirect()->back()->with('success', 'Jenis barang berhasil diperbarui');
-        } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Gagal memperbarui jenis barang: ' . $th->getMessage());
-        }
-    }
-
-    public function delete(int $id)
+    public function destroy($id)
     {
         try {
-            $result = $this->jenis_barang_service->delete_jenis_barang($id);
-            return redirect()->back()->with('success', 'Jenis barang berhasil dihapus');
+            $this->jenis_barang_service->delete_jenis_barang($id);
+            return redirect()->route('jenis-barang.index')->with('success', 'Jenis barang berhasil dihapus');
         } catch (\Throwable $th) {
             return redirect()->back()->with('error', 'Gagal menghapus jenis barang: ' . $th->getMessage());
         }

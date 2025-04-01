@@ -59,21 +59,25 @@ class AuthService
     }
 
     public function logout($token)
-    {
-        try {
-            $response = Http::withToken($token)
-                ->withoutRedirecting()
-                ->post(ApiConstant::BASE_URL . '/auth/logout');
+{
+    try {
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$token}",
+        ])->post(ApiConstant::BASE_URL . '/auth/logout');
 
-            return $response->successful();
-        } catch (\Exception $e) {
-            return false;
+        if ($response->successful()) {
+            return true;
         }
+        return false;
+    } catch (\Exception $e) {
+        Log::error('Logout exception', ['error' => $e->getMessage()]);
+        return false;
     }
+}
 
     protected function handleFailedLogin($response)
     {
-        $status = $response->status();   
+        $status = $response->status();
         $data = $response->json();
 
         $message = match ($status) {
