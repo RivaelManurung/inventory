@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Resources;
 
 use Carbon\Carbon;
@@ -21,15 +20,12 @@ class BarangResource extends JsonResource
             'barang_slug' => $this->barang_slug,
             'barang_harga' => $this->barang_harga,
             'klasifikasi_barang' => $this->klasifikasi_barang,
-            'satuan' => $this->satuan,
-            'jenisbarang' => $this->jenisbarang,
-            'user_id' => $this->user_id,
-            'created_by' => optional($this->createdBy)->username,
-            'updated_by' => optional($this->updatedBy)->username,
-            'created_at' => Carbon::parse($this->created_at)->translatedFormat('d F Y h:i A'),
-            'updated_at' => Carbon::parse($this->updated_at)->translatedFormat('d F Y h:i A'),
+            'satuan' => $this->whenLoaded('satuan'),
+            'jenisbarang' => $this->whenLoaded('jenisBarang'), // Note the capitalization change
+            'user' => $this->whenLoaded('user'),
+            'created_at' => Carbon::parse($this->created_at)->format('Y-m-d H:i:s'),
+            'updated_at' => Carbon::parse($this->updated_at)->format('Y-m-d H:i:s'),
             'deleted_at' => $this->deleted_at ? Carbon::parse($this->deleted_at)->translatedFormat('d F Y h:i A') : null,
         ];
     }
 }
-

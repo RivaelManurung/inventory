@@ -15,6 +15,16 @@ class BarangRepository
         return Barang::findOrFail($id);
     }
 
+    public function getAllWithRelations(array $relations = [])
+    {
+        return Barang::with($relations)->get();
+    }
+
+    public function getByIdWithRelations(int $id, array $relations = [])
+    {
+        return Barang::with($relations)->findOrFail($id);
+    }
+
     public function create(array $data)
     {
         return Barang::create($data);
