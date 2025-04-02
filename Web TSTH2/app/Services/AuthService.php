@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use App\Http\Constant\ApiConstant;
 
@@ -13,24 +12,32 @@ class AuthService
     public function login(array $credentials)
     {
         try {
-            $response = Http::post(ApiConstant::BASE_URL . '/auth/login', $credentials);
+            $response = Http::timeout(30)
+                ->retry(3, 100)
+                ->post(ApiConstant::BASE_URL . '/auth/login', $credentials);
+
             $data = $response->json();
 
             if ($response->failed()) {
                 Log::error('Login failed', [
                     'status' => $response->status(),
-                    'response' => $response->body()
+                    'response' => $data
                 ]);
-                return ($data);
+                return $this->handleFailedLogin($response);
             }
 
-            session(['jwt_token' => $data['token']]);
-
-            return $data;
+            return [
+                'success' => true,
+                'token' => $data['token'],
+                'expires_in' => $data['expires_in'] ?? 1440,
+                'data' => $data['data'] ?? []
+            ];
         } catch (\Exception $e) {
+            Log::error('Login exception', ['error' => $e->getMessage()]);
             return [
                 'success' => false,
-                'message' => 'Cannot connect to authentication server'
+                'message' => 'Cannot connect to authentication server',
+                'exception' => $e->getMessage()
             ];
         }
     }
@@ -39,41 +46,40 @@ class AuthService
     {
         try {
             $token = session('jwt_token');
+            
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
             ])->get(ApiConstant::BASE_URL . '/auth/me');
 
+            if ($response->failed()) {
+                Log::error('Failed to fetch user', [
+                    'status' => $response->status(),
+                    'response' => $response->body()
+                ]);
+                return null;
+            }
 
             $data = $response->json();
-            $user = new UserResource((object) $data['data']);
-
-            // $user = UserRource::collection($user)
-            // if ($response->failed()) {
-            // return collect();
-            // }
-
-            return $user;
+            return new UserResource((object) $data['data']);
         } catch (\Exception $e) {
+            Log::error('Fetch user exception', ['error' => $e->getMessage()]);
             return null;
         }
     }
 
     public function logout($token)
-{
-    try {
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer {$token}",
-        ])->post(ApiConstant::BASE_URL . '/auth/logout');
+    {
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer {$token}",
+            ])->post(ApiConstant::BASE_URL . '/auth/logout');
 
-        if ($response->successful()) {
-            return true;
+            return $response->successful();
+        } catch (\Exception $e) {
+            Log::error('Logout exception', ['error' => $e->getMessage()]);
+            return false;
         }
-        return false;
-    } catch (\Exception $e) {
-        Log::error('Logout exception', ['error' => $e->getMessage()]);
-        return false;
     }
-}
 
     protected function handleFailedLogin($response)
     {
@@ -81,16 +87,17 @@ class AuthService
         $data = $response->json();
 
         $message = match ($status) {
-            401 => 'Username atau password salah',
-            422 => $data['message'] ?? 'Data tidak valid',
-            500 => 'Server error',
-            default => 'Login gagal'
+            401 => 'Invalid credentials',
+            422 => $data['message'] ?? 'Validation error',
+            500 => 'Internal server error',
+            default => 'Login failed'
         };
 
         return [
             'success' => false,
             'message' => $message,
-            'status_code' => $status
+            'status' => $status,
+            'errors' => $data['errors'] ?? null
         ];
     }
 }

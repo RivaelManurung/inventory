@@ -12,6 +12,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'auth.web' => \App\Http\Middleware\JwtAuth::class,
+            'permission' => \App\Http\Middleware\CheckPermission::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

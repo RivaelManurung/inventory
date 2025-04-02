@@ -17,11 +17,15 @@ class UserSeeder extends Seeder
 
         // Daftar semua permission untuk seluruh tabel
         $permissions = [
+            // Dashboard
+            'dashboard.view',
+            
             // User Management
             'user.view',
             'user.create',
             'user.edit',
             'user.delete',
+            'user.logout', // Added logout permission
             
             // Role & Permission Management
             'role.view',
@@ -126,6 +130,8 @@ class UserSeeder extends Seeder
             'name' => 'admin', 
             'guard_name' => 'api'
         ])->givePermissionTo([
+            'dashboard.view',
+            'user.logout', // Added logout permission for admin
             // Gudang
             'gudang.view', 'gudang.create', 'gudang.edit',
             
@@ -165,6 +171,8 @@ class UserSeeder extends Seeder
             'name' => 'manager',
             'guard_name' => 'api'
         ])->givePermissionTo([
+            'dashboard.view',
+            'user.logout', // Added logout permission for manager
             'gudang.view',
             'barang.view',
             'jenis-barang.view',
@@ -182,6 +190,8 @@ class UserSeeder extends Seeder
             'name' => 'operator',
             'guard_name' => 'api'
         ])->givePermissionTo([
+            'dashboard.view',
+            'user.logout', // Added logout permission for operator
             'barang.view',
             'stok.view',
             'transaksi.view',
