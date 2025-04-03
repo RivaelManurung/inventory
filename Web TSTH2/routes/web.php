@@ -34,17 +34,15 @@ Route::middleware([JwtAuth::class])->group(function () {
     Route::prefix('satuan')->middleware('permission:satuan.view')->group(function () {
         Route::get('/', [SatuanController::class, 'index'])->name('satuan.index');
         Route::middleware('permission:satuan.create')->group(function () {
-            Route::get('/create', [SatuanController::class, 'create'])->name('satuan.create');
-            Route::post('/', [SatuanController::class, 'store'])->name('satuan.store');
+            Route::post('/', [SatuanController::class, 'store'])->name('satuan.store'); // Changed from create to store
         });
         Route::get('/{satuan}', [SatuanController::class, 'show'])->name('satuan.show');
         Route::middleware('permission:satuan.edit')->group(function () {
-            Route::get('/{satuan}/edit', [SatuanController::class, 'edit'])->name('satuan.edit');
             Route::put('/{satuan}', [SatuanController::class, 'update'])->name('satuan.update');
         });
-        Route::delete('/{satuan}', [SatuanController::class, 'destroy'])
+        Route::delete('/{satuan}', [SatuanController::class, 'delete'])
             ->middleware('permission:satuan.delete')
-            ->name('satuan.destroy');
+            ->name('satuan.delete');
     });
 
     // Jenis Barang Routes

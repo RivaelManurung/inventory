@@ -16,12 +16,9 @@ class SatuanController extends Controller
         $this->satuanService = $satuanService;
     }
 
-    public function index(Request $request)
+    public function index()
     {
-        $result = $this->satuanService->getAllSatuans([
-            'search' => $request->input('search'),
-            'per_page' => $request->input('per_page', 10)
-        ]);
+        $result = $this->satuanService->getAllSatuans();
 
         if (!$result['success']) {
             return response()->json([
@@ -34,18 +31,9 @@ class SatuanController extends Controller
         return response()->json([
             'success' => true,
             'data' => SatuanResource::collection($result['data']),
-            'meta' => [
-                'current_page' => $result['data']->currentPage(),
-                'from' => $result['data']->firstItem(),
-                'to' => $result['data']->lastItem(),
-                'total' => $result['data']->total(),
-                'last_page' => $result['data']->lastPage(),
-                'per_page' => $result['data']->perPage(),
-            ],
             'message' => $result['message']
         ]);
     }
-
     public function store(Request $request)
     {
         $result = $this->satuanService->createSatuan($request->all());

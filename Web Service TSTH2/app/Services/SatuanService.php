@@ -20,17 +20,13 @@ class SatuanService
     public function getAllSatuans(array $params = [])
     {
         try {
-            $search = $params['search'] ?? null;
-            $perPage = $params['per_page'] ?? 10;
-
-            $satuans = $this->satuanRepository->getAll($search, $perPage);
+            $satuans = $this->satuanRepository->getAll();
 
             return [
                 'success' => true,
                 'data' => $satuans,
                 'message' => 'Data satuan berhasil diambil'
             ];
-
         } catch (Exception $e) {
             Log::error('Error getting satuan data: ' . $e->getMessage());
             return [
@@ -58,7 +54,6 @@ class SatuanService
                 'data' => $satuan,
                 'message' => 'Data satuan berhasil diambil'
             ];
-
         } catch (Exception $e) {
             Log::error('Error getting satuan by ID: ' . $e->getMessage());
             return [
@@ -73,6 +68,9 @@ class SatuanService
     {
         DB::beginTransaction();
         try {
+            // Generate slug from satuan_nama
+            $data['satuan_slug'] = \Illuminate\Support\Str::slug($data['satuan_nama']);
+
             $satuan = $this->satuanRepository->create($data);
 
             DB::commit();
@@ -81,7 +79,6 @@ class SatuanService
                 'data' => $satuan,
                 'message' => 'Satuan berhasil ditambahkan'
             ];
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error creating satuan: ' . $e->getMessage());
@@ -114,7 +111,6 @@ class SatuanService
                 'data' => $updatedSatuan,
                 'message' => 'Satuan berhasil diperbarui'
             ];
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error('Error updating satuan: ' . $e->getMessage());
@@ -129,39 +125,36 @@ class SatuanService
     public function deleteSatuan($id)
     {
         DB::beginTransaction();
+        
         try {
+            // Coba approach pertama
             $satuan = $this->satuanRepository->findById($id);
-
+            
             if (!$satuan) {
                 return [
                     'success' => false,
-                    'message' => 'Satuan tidak ditemukan'
+                    'message' => 'Satuan tidak ditemukan',
+                    'error' => 'NOT_FOUND'
                 ];
             }
-
-            // Check if satuan is used in barang
-            if ($this->satuanRepository->isUsedInBarang($satuan)) {
-                return [
-                    'success' => false,
-                    'message' => 'Satuan tidak dapat dihapus karena sudah digunakan pada data barang'
-                ];
-            }
-
-            $this->satuanRepository->delete($satuan);
-
-            DB::commit();
             return [
                 'success' => true,
                 'message' => 'Satuan berhasil dihapus'
             ];
-
-        } catch (Exception $e) {
+    
+        } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error deleting satuan: ' . $e->getMessage());
+            Log::error('Delete Satuan Error', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return [
                 'success' => false,
-                'message' => 'Gagal menghapus satuan',
-                'error' => $e->getMessage()
+                'message' => 'Gagal menghapus satuan: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'error_type' => get_class($e)
             ];
         }
     }

@@ -26,7 +26,7 @@ class SatuanController extends Controller
         }
     }
 
-    public function create(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'nama' => 'required|string',

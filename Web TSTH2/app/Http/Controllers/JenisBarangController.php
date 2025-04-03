@@ -28,22 +28,22 @@ class JenisBarangController extends Controller
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'jenisbarang_nama' => 'required|string|max:255',
-        'jenisbarang_ket' => 'nullable|string'
-    ]);
+    {
+        $request->validate([
+            'jenisbarang_nama' => 'required|string|max:255',
+            'jenisbarang_ket' => 'nullable|string'
+        ]);
 
-    try {
-        $result = $this->jenis_barang_service->create_jenis_barang(
-            $request->jenisbarang_nama,
-            $request->jenisbarang_ket
-        );
-        return redirect()->route('jenis-barang.index')->with('success', 'Jenis barang berhasil ditambahkan');
-    } catch (\Throwable $th) {
-        return redirect()->back()->withInput()->with('error', $th->getMessage());
+        try {
+            $result = $this->jenis_barang_service->create_jenis_barang(
+                $request->jenisbarang_nama,
+                $request->jenisbarang_ket
+            );
+            return redirect()->route('jenis-barang.index')->with('success', 'Jenis barang berhasil ditambahkan');
+        } catch (\Throwable $th) {
+            return redirect()->back()->withInput()->with('error', $th->getMessage());
+        }
     }
-}
 
     public function update(Request $request, $id)
     {

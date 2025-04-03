@@ -1,9 +1,11 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Services\AuthService;
 use App\Services\GudangService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class GudangController extends Controller
 {
@@ -29,15 +31,22 @@ class GudangController extends Controller
     public function create(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string',
+            'nama' => 'required|string|max:255',
             'deskripsi' => 'nullable|string'
         ]);
-        
+
         try {
-            $this->gudang_service->create_gudang($request->nama, $request->deskripsi);
-            return redirect()->back()->with('success', 'Gudang berhasil ditambahkan');
+            $this->gudang_service->create_gudang(
+                $request->input('nama'),
+                $request->input('deskripsi')
+            );
+            return redirect()->route('gudang.index')
+                ->with('success', 'Gudang berhasil ditambahkan');
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Gagal menambahkan gudang: ' . $th->getMessage());
+            Log::error('GudangController store error: ' . $th->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menambahkan gudang: ' . $th->getMessage());
         }
     }
 
@@ -47,7 +56,7 @@ class GudangController extends Controller
             'nama' => 'required|string',
             'deskripsi' => 'nullable|string'
         ]);
-        
+
         try {
             $this->gudang_service->update_gudang($id, $request->nama, $request->deskripsi);
             return redirect()->back()->with('success', 'Gudang berhasil diperbarui');
