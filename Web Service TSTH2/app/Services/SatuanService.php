@@ -125,23 +125,43 @@ class SatuanService
     public function deleteSatuan($id)
     {
         DB::beginTransaction();
-        
+
         try {
-            // Coba approach pertama
             $satuan = $this->satuanRepository->findById($id);
-            
+
             if (!$satuan) {
+                DB::rollBack();
                 return [
                     'success' => false,
                     'message' => 'Satuan tidak ditemukan',
                     'error' => 'NOT_FOUND'
                 ];
             }
+
+            // Check if satuan is used in other records
+            if ($this->satuanRepository->isUsedInBarang($satuan)) {
+                DB::rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'Satuan tidak dapat dihapus karena digunakan di data barang',
+                    'error' => 'IN_USE'
+                ];
+            }
+
+            // Perform actual deletion
+            $deleted = $this->satuanRepository->delete($satuan);
+
+            if (!$deleted) {
+                DB::rollBack();
+                throw new Exception('Delete operation returned false');
+            }
+
+            DB::commit();
+
             return [
                 'success' => true,
                 'message' => 'Satuan berhasil dihapus'
             ];
-    
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Delete Satuan Error', [
@@ -149,7 +169,7 @@ class SatuanService
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Gagal menghapus satuan: ' . $e->getMessage(),

@@ -39,13 +39,13 @@ class SatuanRepository
     public function delete(Satuan $satuan): bool
     {
         try {
-            // Gunakan forceDelete untuk bypass soft delete jika ada
-            return $satuan->forceDelete();
+            return $satuan->delete(); // For soft delete
+            // OR for force delete:
+            // return $satuan->forceDelete();
         } catch (\Exception $e) {
-            Log::error('Delete Satuan Failed', [
+            Log::error('Repository Delete Error', [
                 'id' => $satuan->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $e->getMessage()
             ]);
             throw $e;
         }
@@ -53,6 +53,7 @@ class SatuanRepository
 
     public function isUsedInBarang(Satuan $satuan): bool
     {
-        return $satuan->barangs()->exists();
+        return $satuan->barangs()->exists(); // Adjust based on your relationship
     }
+
 }

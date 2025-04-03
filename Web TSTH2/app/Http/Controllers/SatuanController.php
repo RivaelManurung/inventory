@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Services\AuthService;
 use App\Services\SatuanService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class SatuanController extends Controller
 {
@@ -59,10 +60,21 @@ class SatuanController extends Controller
     public function delete(int $id)
     {
         try {
-            $this->satuan_service->delete_satuan($id);
-            return redirect()->back()->with('success', 'Satuan berhasil dihapus');
+            $deleted = $this->satuan_service->delete_satuan($id);
+            
+            if (!$deleted) {
+                throw new \Exception('Deletion returned false');
+            }
+            
+            return redirect()->back()
+                   ->with('success', 'Satuan berhasil dihapus');
         } catch (\Throwable $th) {
-            return redirect()->back()->with('error', 'Gagal menghapus satuan: ' . $th->getMessage());
+            Log::error('Controller Delete Error', [
+                'id' => $id,
+                'error' => $th->getMessage()
+            ]);
+            return redirect()->back()
+                   ->with('error', 'Gagal menghapus satuan: ' . $th->getMessage());
         }
     }
 }

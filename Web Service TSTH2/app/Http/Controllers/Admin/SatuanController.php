@@ -95,17 +95,20 @@ class SatuanController extends Controller
     {
         $result = $this->satuanService->deleteSatuan($id);
 
-        if (!$result['success']) {
-            $statusCode = $result['message'] === 'Satuan tidak ditemukan' ? 404 : 422;
-            return response()->json([
-                'success' => false,
-                'message' => $result['message']
-            ], $statusCode);
+        $statusCode = 500;
+        if ($result['error'] === 'NOT_FOUND') {
+            $statusCode = 404;
+        } elseif ($result['error'] === 'IN_USE') {
+            $statusCode = 409; // Conflict
+        } elseif ($result['success']) {
+            $statusCode = 200;
         }
 
         return response()->json([
-            'success' => true,
-            'message' => $result['message']
-        ]);
+            'success' => $result['success'],
+            'message' => $result['message'],
+            'error' => $result['error'] ?? null,
+            'error_code' => $result['error_type'] ?? null
+        ], $statusCode);
     }
 }

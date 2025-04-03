@@ -6,6 +6,7 @@ use App\Http\Constant\ApiConstant;
 use App\Http\Resources\SatuanResource;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class SatuanService
 {
@@ -89,16 +90,35 @@ class SatuanService
             $token = Session::get('jwt_token');
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$token}",
+                'Accept' => 'application/json',
             ])->delete("{$this->api_url}/satuan/{$id}");
 
+            // More detailed response handling
             if ($response->failed()) {
-                $result = $response->json();
-                throw new \Exception($result['message'] ?? 'Failed to delete satuan');
+                $error = $response->json();
+                Log::error('Delete Satuan Failed', [
+                    'id' => $id,
+                    'status' => $response->status(),
+                    'error' => $error
+                ]);
+                throw new \Exception($error['message'] ?? 'Failed to delete satuan');
+            }
+
+            $result = $response->json();
+
+            // Verify the deletion was actually successful
+            if (!isset($result['success']) || $result['success'] !== true) {
+                throw new \Exception($result['message'] ?? 'Deletion not confirmed by API');
             }
 
             return true;
         } catch (\Throwable $th) {
-            throw new \Exception($th->getMessage());
+            Log::error('Delete Satuan Error', [
+                'id' => $id,
+                'error' => $th->getMessage(),
+                'trace' => $th->getTraceAsString()
+            ]);
+            throw $th;
         }
     }
 }
