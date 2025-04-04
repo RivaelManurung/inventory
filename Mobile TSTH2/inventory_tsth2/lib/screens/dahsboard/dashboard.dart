@@ -18,8 +18,12 @@ class MyApp extends StatelessWidget {
       title: 'Inventory Pro',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFFF8FAFD),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF4E6AFF),
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF8FAFF),
       ),
       home: const DashboardPage(),
     );
@@ -32,13 +36,14 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(
-      SystemUiOverlayStyle.light.copyWith(
+      const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
       ),
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFD),
+      backgroundColor: const Color(0xFFF8FAFF),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final screenWidth = constraints.maxWidth;
@@ -46,15 +51,16 @@ class DashboardPage extends StatelessWidget {
           final isMediumScreen = screenWidth >= 400 && screenWidth <= 600;
           final isLargeScreen = screenWidth > 600;
 
-          // Calculate card width based on screen size
+          // Calculate responsive values
           final cardWidth = isSmallScreen
-              ? screenWidth * 0.35
+              ? screenWidth * 0.4
               : isMediumScreen
-                  ? 130.0
-                  : 150.0;
+                  ? screenWidth * 0.3
+                  : 160.0;
+          final cardHeight = isSmallScreen ? 100.0 : 120.0;
 
           return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
+            physics: const ClampingScrollPhysics(),
             slivers: [
               _buildAppBar(context, isSmallScreen),
               _buildMainContent(
@@ -63,6 +69,7 @@ class DashboardPage extends StatelessWidget {
                 isMediumScreen,
                 isLargeScreen,
                 cardWidth,
+                cardHeight,
               ),
             ],
           );
@@ -73,82 +80,49 @@ class DashboardPage extends StatelessWidget {
 
   SliverAppBar _buildAppBar(BuildContext context, bool isSmallScreen) {
     return SliverAppBar(
-      expandedHeight: isSmallScreen ? 160 : 180,
+      expandedHeight: isSmallScreen ? 180 : 200,
       floating: false,
       pinned: true,
       elevation: 0,
       backgroundColor: Colors.transparent,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.pin,
-        background: Stack(
-          children: [
-            // Gradient background with decorative elements
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.blue.shade800,
-                    Colors.blue.shade600,
-                  ],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  // Decorative circles
-                  Positioned(
-                    top: -30,
-                    right: -30,
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.05),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: -50,
-                    left: -20,
-                    child: Container(
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.05),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF4E6AFF),
+                Color(0xFF3A56E6),
+              ],
             ),
-            
-            // Content
-            SafeArea(
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isSmallScreen ? 24 : 32,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 16 : 24,
+                vertical: 16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Welcome back,',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.9),
-                                fontSize: isSmallScreen ? 16 : 18,
+                                fontSize: isSmallScreen ? 14 : 16,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -156,58 +130,96 @@ class DashboardPage extends StatelessWidget {
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: isSmallScreen ? 20 : 24,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
-                        // Profile avatar in top-right corner
-                        InkWell(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ProfilePage()),
+                      ),
+                      // Profile avatar
+                      InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ProfilePage()),
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: isSmallScreen ? 40 : 48,
+                          height: isSmallScreen ? 40 : 48,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white.withOpacity(0.2),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.3),
+                              width: 1.5,
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(30),
-                          child: Hero(
-                            tag: 'profile-avatar',
-                            child: Container(
-                              width: isSmallScreen ? 40 : 48,
-                              height: isSmallScreen ? 40 : 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Colors.white,
-                                    Colors.white.withOpacity(0.8),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.5),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  'AJ',
-                                  style: TextStyle(
-                                    color: Colors.blue.shade800,
-                                    fontSize: isSmallScreen ? 16 : 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                          child: Center(
+                            child: Text(
+                              'AJ',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: isSmallScreen ? 16 : 18,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // Search bar
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            color: Colors.white.withOpacity(0.8),
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Search inventory...',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.tune,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -219,78 +231,123 @@ class DashboardPage extends StatelessWidget {
     bool isMediumScreen,
     bool isLargeScreen,
     double cardWidth,
+    double cardHeight,
   ) {
     return SliverPadding(
       padding: EdgeInsets.symmetric(
-        horizontal: isSmallScreen ? 16 : 24,
+        horizontal: isSmallScreen ? 12 : 16,
         vertical: 16,
       ),
       sliver: SliverList(
         delegate: SliverChildListDelegate([
-          // Stats cards with constrained width
+          // Stats cards with responsive width
           SizedBox(
-            height: isSmallScreen ? 100 : 110,
+            height: cardHeight + 20, // Add some padding
             child: ListView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmallScreen ? 8 : 12,
+              ),
               children: [
-                SizedBox(width: isSmallScreen ? 8 : 12),
                 _buildStatCard(
                   width: cardWidth,
+                  height: cardHeight,
                   title: 'Total Items',
                   value: '1,248',
                   icon: Icons.inventory_2_outlined,
-                  color: Colors.blue.shade600,
+                  color: const Color(0xFF4E6AFF),
                   isSmallScreen: isSmallScreen,
                 ),
                 SizedBox(width: isSmallScreen ? 8 : 12),
                 _buildStatCard(
                   width: cardWidth,
+                  height: cardHeight,
                   title: 'Categories',
                   value: '24',
                   icon: Icons.category_outlined,
-                  color: Colors.green.shade600,
+                  color: const Color(0xFF00C4A3),
                   isSmallScreen: isSmallScreen,
                 ),
                 SizedBox(width: isSmallScreen ? 8 : 12),
                 _buildStatCard(
                   width: cardWidth,
+                  height: cardHeight,
                   title: 'Warehouses',
                   value: '5',
                   icon: Icons.warehouse_outlined,
-                  color: Colors.orange.shade600,
+                  color: const Color(0xFFFF7043),
                   isSmallScreen: isSmallScreen,
                 ),
                 SizedBox(width: isSmallScreen ? 8 : 12),
+                _buildStatCard(
+                  width: cardWidth,
+                  height: cardHeight,
+                  title: 'Low Stock',
+                  value: '18',
+                  icon: Icons.warning_amber_outlined,
+                  color: const Color(0xFFFF5252),
+                  isSmallScreen: isSmallScreen,
+                ),
               ],
             ),
           ),
 
-          SizedBox(height: isSmallScreen ? 24 : 32),
+          const SizedBox(height: 24),
 
-          const Text(
-            'Quick Actions',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF333333),
+          // Section header
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 4 : 8,
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 16 : 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1A1D1F),
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  'View All',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: const Color(0xFF4E6AFF),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 12,
+                  color: const Color(0xFF4E6AFF),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: isSmallScreen ? 12 : 16),
 
+          const SizedBox(height: 12),
+
+          // Grid layout with responsive sizing
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: isLargeScreen ? 3 : 2,
             crossAxisSpacing: isSmallScreen ? 8 : 12,
             mainAxisSpacing: isSmallScreen ? 8 : 12,
-            childAspectRatio: isLargeScreen ? 1.2 : 1.05,
+            childAspectRatio: isLargeScreen ? 1.25 : (isSmallScreen ? 0.9 : 1.05),
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 4 : 8,
+            ),
             children: [
               _buildActionCard(
                 context: context,
                 icon: Icons.straighten,
                 title: 'Units',
-                color: const Color(0xFF6E45E2),
+                color: const Color(0xFF4E6AFF),
                 isSmallScreen: isSmallScreen,
                 onTap: () => Navigator.push(
                   context,
@@ -301,7 +358,7 @@ class DashboardPage extends StatelessWidget {
                 context: context,
                 icon: Icons.qr_code_scanner,
                 title: 'QR Tools',
-                color: const Color(0xFF4CC9F0),
+                color: const Color(0xFF00C4A3),
                 isSmallScreen: isSmallScreen,
                 onTap: () => Navigator.push(
                   context,
@@ -312,7 +369,7 @@ class DashboardPage extends StatelessWidget {
                 context: context,
                 icon: Icons.category,
                 title: 'Categories',
-                color: const Color(0xFF88D3CE),
+                color: const Color(0xFFFF7043),
                 isSmallScreen: isSmallScreen,
                 onTap: () {},
               ),
@@ -320,7 +377,7 @@ class DashboardPage extends StatelessWidget {
                 context: context,
                 icon: Icons.warehouse,
                 title: 'Warehouses',
-                color: const Color(0xFFFF9A9E),
+                color: const Color(0xFFFF5252),
                 isSmallScreen: isSmallScreen,
                 onTap: () {},
               ),
@@ -329,7 +386,7 @@ class DashboardPage extends StatelessWidget {
                   context: context,
                   icon: Icons.settings,
                   title: 'Settings',
-                  color: Colors.purple.shade600,
+                  color: const Color(0xFF7B61FF),
                   isSmallScreen: isSmallScreen,
                   onTap: () {},
                 ),
@@ -337,14 +394,55 @@ class DashboardPage extends StatelessWidget {
                   context: context,
                   icon: Icons.analytics,
                   title: 'Reports',
-                  color: Colors.teal.shade600,
+                  color: const Color(0xFF00B8D9),
                   isSmallScreen: isSmallScreen,
                   onTap: () {},
                 ),
               ],
             ],
           ),
-          SizedBox(height: isSmallScreen ? 16 : 24),
+
+          const SizedBox(height: 24),
+
+          // Recent activity section
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isSmallScreen ? 4 : 8,
+            ),
+            child: Text(
+              'Recent Activity',
+              style: TextStyle(
+                fontSize: isSmallScreen ? 16 : 18,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1A1D1F),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _buildActivityItem(
+            icon: Icons.inventory,
+            title: 'New items added',
+            subtitle: '15 new products in Electronics',
+            time: '2 hours ago',
+            color: const Color(0xFF4E6AFF),
+            isSmallScreen: isSmallScreen,
+          ),
+          _buildActivityItem(
+            icon: Icons.edit,
+            title: 'Inventory updated',
+            subtitle: 'Stock levels adjusted',
+            time: '5 hours ago',
+            color: const Color(0xFF00C4A3),
+            isSmallScreen: isSmallScreen,
+          ),
+          _buildActivityItem(
+            icon: Icons.warning,
+            title: 'Low stock alert',
+            subtitle: '3 items below minimum',
+            time: 'Yesterday',
+            color: const Color(0xFFFF7043),
+            isSmallScreen: isSmallScreen,
+          ),
         ]),
       ),
     );
@@ -352,6 +450,7 @@ class DashboardPage extends StatelessWidget {
 
   Widget _buildStatCard({
     required double width,
+    required double height,
     required String title,
     required String value,
     required IconData icon,
@@ -360,11 +459,11 @@ class DashboardPage extends StatelessWidget {
   }) {
     return SizedBox(
       width: width,
+      height: height,
       child: Container(
-        padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
+          borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.03),
@@ -373,45 +472,52 @@ class DashboardPage extends StatelessWidget {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: isSmallScreen ? 32 : 36,
+                height: isSmallScreen ? 32 : 36,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: isSmallScreen ? 16 : 18,
+                  ),
+                ),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: isSmallScreen ? 16 : 18,
+              const Spacer(),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 16 : 18,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFF1A1D1F),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
-            SizedBox(height: isSmallScreen ? 6 : 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: isSmallScreen ? 16 : 18,
-                fontWeight: FontWeight.w700,
+              const SizedBox(height: 2),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 11 : 12,
+                  color: const Color(0xFF6F767E),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: isSmallScreen ? 11 : 12,
-                color: Colors.grey.shade600,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1);
+    ).animate().fadeIn(delay: 100.ms).slideX(begin: 20);
   }
 
   Widget _buildActionCard({
@@ -426,68 +532,134 @@ class DashboardPage extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(isSmallScreen ? 12 : 14),
-            color: color.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: color.withOpacity(0.2),
-                blurRadius: 8,
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Stack(
-            children: [
-              Positioned(
-                right: -12,
-                bottom: -12,
-                child: Icon(
-                  icon,
-                  size: isSmallScreen ? 60 : 72,
-                  color: Colors.white.withOpacity(0.1),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.all(isSmallScreen ? 12 : 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: isSmallScreen ? 32 : 36,
-                      height: isSmallScreen ? 32 : 36,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          icon,
-                          color: Colors.white,
-                          size: isSmallScreen ? 16 : 18,
-                        ),
-                      ),
+          child: Padding(
+            padding: EdgeInsets.all(isSmallScreen ? 12 : 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: isSmallScreen ? 36 : 40,
+                  height: isSmallScreen ? 36 : 40,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      icon,
+                      color: color,
+                      size: isSmallScreen ? 18 : 20,
                     ),
-                    Text(
-                      title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isSmallScreen ? 14 : 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+                const Spacer(),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 14 : 15,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1A1D1F),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'View details',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: const Color(0xFF6F767E),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
-      ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2),
+      ).animate().fadeIn(delay: 200.ms).slideY(begin: 20),
+    );
+  }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String time,
+    required Color color,
+    required bool isSmallScreen,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: isSmallScreen ? 36 : 40,
+            height: isSmallScreen ? 36 : 40,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                color: color,
+                size: isSmallScreen ? 16 : 18,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 13 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1A1D1F),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 11 : 12,
+                    color: const Color(0xFF6F767E),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            time,
+            style: TextStyle(
+              fontSize: isSmallScreen ? 10 : 11,
+              color: const Color(0xFF6F767E),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }
