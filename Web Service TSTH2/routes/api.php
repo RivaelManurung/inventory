@@ -7,30 +7,58 @@ use App\Http\Controllers\Admin\GudangController;
 use App\Http\Controllers\Admin\SatuanController;
 use App\Http\Controllers\Admin\JenisBarangController;
 use App\Http\Controllers\Admin\BarangController;
-use App\Http\Controllers\Admin\PermissionController;
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
 Route::middleware(['auth:api'])->group(function () {
+    // Auth routes - basic permissions
     Route::prefix('auth')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::post('/refresh', [AuthController::class, 'refresh']);
-        Route::get('/me', [AuthController::class, 'me']);
+        Route::post('/logout', [AuthController::class, 'logout'])->middleware('permission:auth.logout');
+        Route::post('/refresh', [AuthController::class, 'refresh'])->middleware('permission:auth.refresh');
+        Route::get('/me', [AuthController::class, 'me'])->middleware('permission:auth.me');
     });
 
-    // Prefix 'user' hanya bisa diakses oleh superadmin
-    Route::prefix('user')->middleware(['auth:api', 'role:superadmin'])->group(function () {
-        Route::get('/permissions', [UserAccessController::class, 'getUserPermissions']);
-        Route::get('/accessible-routes', [UserAccessController::class, 'getAccessibleRoutes']);
-        Route::get('/full-access-info', [UserAccessController::class, 'getFullAccessInfo']);
-        Route::post('/give-permission', [UserAccessController::class, 'givePermission']);
-        Route::post('/revoke-permission', [UserAccessController::class, 'revokePermission']);
-        Route::post('/assign-role', [UserAccessController::class, 'assignRole']);
-        Route::post('/remove-role', [UserAccessController::class, 'removeRole']);
+    // Access control routes - admin only
+    Route::prefix('access-control')->middleware(['permission:access-control.manage'])->group(function () {
+        Route::get('/users', [UserAccessController::class, 'getAllUsers'])
+            ->middleware('permission:access-control.users.view');
+
+
+        Route::post('/give-permission', [UserAccessController::class, 'givePermission'])
+            ->middleware('permission:permission.assign');
+        Route::post('/revoke-permission', [UserAccessController::class, 'revokePermission'])
+            ->middleware('permission:permission.revoke');
+
+        Route::post('/assign-role', [UserAccessController::class, 'assignRole'])
+            ->middleware('permission:role.assign');
+        Route::post('/remove-role', [UserAccessController::class, 'removeRole'])
+            ->middleware('permission:role.remove');
+
+        Route::get('/user/{userId}/permissions', [UserAccessController::class, 'getUserPermissions'])
+            ->middleware('permission:user.view');
+        Route::get('/user/{userId}/accessible-routes', [UserAccessController::class, 'getAccessibleRoutes'])
+            ->middleware('permission:user.view');
+        Route::get('/user/{userId}/full-access-info', [UserAccessController::class, 'getFullAccessInfo'])
+            ->middleware('permission:user.view');
     });
 
+    // Resource routes
+    Route::prefix('gudang')->middleware('permission:gudang.access')->group(function () {
+        Route::get('/', [GudangController::class, 'index'])
+            ->middleware('permission:gudang.view');
+        Route::post('/', [GudangController::class, 'store'])
+            ->middleware('permission:gudang.create');
+        Route::get('/{id}', [GudangController::class, 'show'])
+            ->middleware('permission:gudang.view');
+        Route::put('/{id}', [GudangController::class, 'update'])
+            ->middleware('permission:gudang.edit');
+        Route::delete('/{id}', [GudangController::class, 'destroy'])
+            ->middleware('permission:gudang.delete');
+    });
+
+    // Resource routes with permission middleware
     Route::middleware('permission:gudang.view')->prefix('gudang')->group(function () {
         Route::get('/', [GudangController::class, 'index']);
         Route::post('/', [GudangController::class, 'store'])->middleware('permission:gudang.create');
@@ -45,10 +73,8 @@ Route::middleware(['auth:api'])->group(function () {
         Route::get('/{id}', [BarangController::class, 'show']);
         Route::put('/{id}', [BarangController::class, 'update'])->middleware('permission:barang.edit');
         Route::delete('/{id}', [BarangController::class, 'destroy'])->middleware('permission:barang.delete');
-
-        // Tambahkan route baru khusus untuk barcode
-        Route::get('/{id}/barcode', [BarangController::class, 'getBarcode'])->middleware('permission:barang.view');
-        Route::get('/{id}/barcode/download', [BarangController::class, 'downloadBarcode'])->middleware('permission:barang.view');
+        Route::get('/{id}/barcode', [BarangController::class, 'getBarcode']);
+        Route::get('/{id}/barcode/download', [BarangController::class, 'downloadBarcode']);
     });
 
     Route::middleware('permission:satuan.view')->prefix('satuan')->group(function () {

@@ -95,20 +95,23 @@ class SatuanController extends Controller
     {
         $result = $this->satuanService->deleteSatuan($id);
 
-        $statusCode = 500;
-        if ($result['error'] === 'NOT_FOUND') {
-            $statusCode = 404;
-        } elseif ($result['error'] === 'IN_USE') {
-            $statusCode = 409; // Conflict
-        } elseif ($result['success']) {
-            $statusCode = 200;
+        $statusCode = 200;
+        $response = [
+            'success' => $result['success'],
+            'message' => $result['message']
+        ];
+
+        // Only add error info if it exists
+        if (isset($result['error'])) {
+            $response['error'] = $result['error'];
+            $statusCode = $result['error'] === 'NOT_FOUND' ? 404 : ($result['error'] === 'IN_USE' ? 409 : 500);
         }
 
-        return response()->json([
-            'success' => $result['success'],
-            'message' => $result['message'],
-            'error' => $result['error'] ?? null,
-            'error_code' => $result['error_type'] ?? null
-        ], $statusCode);
+        // Add error type if it exists
+        if (isset($result['error_type'])) {
+            $response['error_code'] = $result['error_type'];
+        }
+
+        return response()->json($response, $statusCode);
     }
 }

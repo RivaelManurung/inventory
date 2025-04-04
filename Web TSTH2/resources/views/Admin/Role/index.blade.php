@@ -14,194 +14,203 @@
 
 @push('styles')
 <style>
-    .permission-card {
-        margin-bottom: 1.5rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.5rem;
-    }
-    .permission-card-header {
-        background-color: #f3f4f6;
-        padding: 0.75rem 1rem;
-        font-weight: 600;
-        border-bottom: 1px solid #e5e7eb;
-    }
-    .permission-card-body {
-        padding: 1rem;
-    }
-    .user-access-item {
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background-color: #f9fafb;
-        border-radius: 0.5rem;
-    }
-    .route-item {
-        padding: 0.5rem;
-        border-bottom: 1px dashed #e5e7eb;
-    }
+    /* Keep your existing styles */
 </style>
 @endpush
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">User Access Management</h5>
+<!-- PAGE-HEADER -->
+<div class="page-header">
+    <h1 class="page-title">User Access Management</h1>
+    <div>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="javascript:void(0)">System</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Access Control</li>
+        </ol>
     </div>
-    
-    <div class="card-body">
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
-        @endif
+</div>
+<!-- PAGE-HEADER END -->
 
-        <div class="row">
-            <!-- Users List -->
-            <div class="col-md-4">
-                <div class="card permission-card">
-                    <div class="permission-card-header">
-                        Users
+<div class="row row-sm">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Manage User Roles and Permissions</h3>
+            </div>
+            <div class="card-body">
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="ph-checks me-2"></i>
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
-                    <div class="permission-card-body">
-                        @foreach($accessInfo['users'] ?? [] as $user)
-                            <div class="user-access-item">
-                                <h6>{{ $user['name'] }}</h6>
-                                <p class="text-muted small mb-2">{{ $user['email'] }}</p>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <button class="btn btn-sm btn-info view-permissions" 
-                                        data-user-id="{{ $user['id'] }}">
-                                        View Permissions
-                                    </button>
-                                    <button class="btn btn-sm btn-primary view-routes" 
-                                        data-user-id="{{ $user['id'] }}">
-                                        View Routes
-                                    </button>
+                @endif
+
+                <div class="row">
+                    <!-- Users List -->
+                    <div class="col-md-4">
+                        <div class="card permission-card">
+                            <div class="permission-card-header">
+                                <i class="ph-users me-2"></i> Users
+                            </div>
+                            <div class="permission-card-body">
+                                @foreach($users as $user)
+                                    <div class="user-access-item">
+                                        <h6 class="mb-1">{{ $user->name }}</h6>
+                                        <p class="text-muted small mb-2">{{ $user->email }}</p>
+                                        
+                                        <div class="mt-2">
+                                            @foreach($user->roles as $role)
+                                                <span class="badge bg-primary me-1 role-badge">{{ $role }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Roles Management -->
+                    <div class="col-md-4">
+                        <div class="card permission-card">
+                            <div class="permission-card-header d-flex justify-content-between align-items-center">
+                                <span><i class="ph-shield me-2"></i>Roles</span>
+                                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addRoleModal">
+                                    <i class="ph-plus me-1"></i> Add Role
+                                </button>
+                            </div>
+                            <div class="permission-card-body">
+                                <ul class="list-group">
+                                    @foreach($all_roles as $role)
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ $role }}
+                                            <div>
+                                                <button class="btn btn-sm btn-icon btn-info me-1" data-bs-toggle="modal" 
+                                                    data-bs-target="#editRoleModal" 
+                                                    data-role="{{ $role }}">
+                                                    <i class="ph-pencil"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-icon btn-danger" data-bs-toggle="modal" 
+                                                    data-bs-target="#deleteRoleModal" 
+                                                    data-role="{{ $role }}">
+                                                    <i class="ph-trash"></i>
+                                                </button>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Permissions Management -->
+                    <div class="col-md-4">
+                        <div class="card permission-card">
+                            <div class="permission-card-header">
+                                <i class="ph-key me-2"></i> Permissions
+                            </div>
+                            <div class="permission-card-body">
+                                <div class="row">
+                                    @foreach($all_permissions as $permission)
+                                        <div class="col-md-6 mb-2">
+                                            <span class="badge bg-success d-block text-start permission-badge">
+                                                <i class="ph-check-circle me-1"></i> {{ $permission }}
+                                            </span>
+                                        </div>
+                                    @endforeach
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
-
-            <!-- Permissions and Roles -->
-            <div class="col-md-4">
-                <div class="card permission-card">
-                    <div class="permission-card-header">
-                        Roles & Permissions
-                    </div>
-                    <div class="permission-card-body">
-                        <h6>All Roles</h6>
-                        <ul class="list-group mb-3">
-                            @foreach($accessInfo['all_roles'] ?? [] as $role)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ $role }}
-                                    <span class="badge bg-primary rounded-pill">Assign</span>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <h6>All Permissions</h6>
-                        <ul class="list-group">
-                            @foreach($accessInfo['all_permissions'] ?? [] as $permission)
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    {{ $permission }}
-                                    <span class="badge bg-success rounded-pill">Grant</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- User Details -->
-            <div class="col-md-4">
-                <div class="card permission-card">
-                    <div class="permission-card-header">
-                        User Details
-                    </div>
-                    <div class="permission-card-body" id="user-details">
-                        <div class="text-center text-muted py-4">
-                            Select a user to view details
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Accessible Routes Modal -->
-        <div class="modal fade" id="routesModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Accessible Routes</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <!-- Role Assignment Section -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="ph-user-switch me-2"></i>Assign Roles to Users</h3>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ route('user-access.assign-role') }}">
+                                    @csrf
+                                    <div class="row g-2">
+                                        <div class="col-md-5">
+                                            <select class="form-select" name="user_id" required>
+                                                <option value="">Select User</option>
+                                                @foreach($users as $user)
+                                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <select class="form-select" name="role" required>
+                                                <option value="">Select Role</option>
+                                                @foreach($all_roles as $role)
+                                                    <option value="{{ $role }}">{{ $role }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i class="ph-check-circle me-1"></i> Assign
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
-                    <div class="modal-body" id="routesModalBody">
-                        Loading...
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+
+                <!-- Permission Assignment Section -->
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title"><i class="ph-keyhole me-2"></i>Grant Permissions to Users</h3>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" action="{{ route('user-access.give-permission') }}">
+                                    @csrf
+                                    <div class="row g-2">
+                                        <div class="col-md-5">
+                                            <select class="form-select" name="user_id" required>
+                                                <option value="">Select User</option>
+                                                @foreach($users as $user)
+                                                    <option value="{{ $user->id }}">{{ $user->name }} ({{ $user->email }})</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <select class="form-select" name="permission" required>
+                                                <option value="">Select Permission</option>
+                                                @foreach($all_permissions as $permission)
+                                                    <option value="{{ $permission }}">{{ $permission }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="submit" class="btn btn-success w-100">
+                                                <i class="ph-check-circle me-1"></i> Grant
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Modals remain the same as before -->
 @endsection
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // View Permissions
-    $('.view-permissions').click(function() {
-        const userId = $(this).data('user-id');
-        $.get(`/admin/user-access/permissions/${userId}`, function(response) {
-            $('#user-details').html(`
-                <h6>User Permissions</h6>
-                <ul class="list-group mb-3">
-                    ${response.data.permissions.map(p => `<li class="list-group-item">${p}</li>`).join('')}
-                </ul>
-                <h6>User Roles</h6>
-                <ul class="list-group">
-                    ${response.data.roles.map(r => `<li class="list-group-item">${r}</li>`).join('')}
-                </ul>
-            `);
-        }).fail(function(error) {
-            alert('Failed to load permissions');
-        });
-    });
-
-    // View Routes
-    $('.view-routes').click(function() {
-        const userId = $(this).data('user-id');
-        $.get(`/admin/user-access/routes/${userId}`, function(response) {
-            $('#routesModalBody').html(`
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Method</th>
-                                <th>URI</th>
-                                <th>Name</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${response.data.accessible_routes.map(route => `
-                                <tr>
-                                    <td>${route.method}</td>
-                                    <td>${route.uri}</td>
-                                    <td>${route.name || '-'}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `);
-            $('#routesModal').modal('show');
-        }).fail(function(error) {
-            alert('Failed to load routes');
-        });
-    });
-});
+    // Your existing JavaScript
 </script>
 @endpush

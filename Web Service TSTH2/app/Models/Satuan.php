@@ -16,4 +16,8 @@ class Satuan extends Model
         'satuan_slug',
         'satuan_keterangan'
     ];
+    public function barangs()
+    {
+        return $this->hasMany(Barang::class, 'satuan_id');
+    }
 }

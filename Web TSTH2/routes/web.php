@@ -7,7 +7,7 @@ use App\Http\Controllers\SatuanController;
 use App\Http\Controllers\JenisBarangController;
 use App\Http\Controllers\BarangController;
 use App\Http\Controllers\GudangController;
-use App\Http\Controllers\UserAccessManagementController;
+use App\Http\Controllers\UserAccessController;
 use App\Http\Middleware\JwtAuth;
 
 // Public Routes
@@ -96,16 +96,16 @@ Route::middleware([JwtAuth::class])->group(function () {
     });
 
     // User Access Management Routes
-    Route::prefix('user-access')->middleware('permission:user.view')->group(function () {
-        Route::get('/', [UserAccessManagementController::class, 'index'])->name('user-access.index');
-        Route::middleware('permission:user.edit')->group(function () {
-            Route::post('/assign-role', [UserAccessManagementController::class, 'assignRole'])->name('user-access.assign-role');
-            Route::post('/remove-role', [UserAccessManagementController::class, 'removeRole'])->name('user-access.remove-role');
-            Route::post('/give-permission', [UserAccessManagementController::class, 'givePermission'])->name('user-access.give-permission');
-            Route::post('/revoke-permission', [UserAccessManagementController::class, 'revokePermission'])->name('user-access.revoke-permission');
+    Route::prefix('user-access')->middleware('permission:access-control.users.view')->group(function () {
+        Route::get('/', [UserAccessController::class, 'index'])->name('user-access.index');
+        Route::middleware('permission:access-control.manage')->group(function () {
+            Route::post('/assign-role', [UserAccessController::class, 'assignRole'])->name('user-access.assign-role');
+            Route::post('/remove-role', [UserAccessController::class, 'removeRole'])->name('user-access.remove-role');
+            Route::post('/give-permission', [UserAccessController::class, 'givePermission'])->name('user-access.give-permission');
+            Route::post('/revoke-permission', [UserAccessController::class, 'revokePermission'])->name('user-access.revoke-permission');
         });
-        Route::get('/permissions/{userId?}', [UserAccessManagementController::class, 'getUserPermissions'])->name('user-access.permissions');
-        Route::get('/routes/{userId?}', [UserAccessManagementController::class, 'getAccessibleRoutes'])->name('user-access.routes');
+        Route::get('/permissions/{userId?}', [UserAccessController::class, 'getUserPermissions'])->name('user-access.permissions');
+        Route::get('/routes/{userId?}', [UserAccessController::class, 'getAccessibleRoutes'])->name('user-access.routes');
     });
 
     // Logout Route

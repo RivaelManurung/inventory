@@ -3,225 +3,114 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\UserModel;
+use App\Services\UserAccessService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
+use Illuminate\Http\JsonResponse;
 
 class UserAccessController extends Controller
 {
-    public function __construct()
+    protected $userAccessService;
+
+    public function __construct(UserAccessService $userAccessService)
     {
+        $this->userAccessService = $userAccessService;
         $this->middleware(['auth:api', 'role:superadmin'])->except([
             'getUserPermissions',
             'getAccessibleRoutes',
             'getFullAccessInfo'
         ]);
     }
-    
 
-    // ==================== USER PERMISSIONS ====================
-    public function getUserPermissions($userId = null)
+    public function getAllUsers(): JsonResponse
     {
-        $user = $userId ? UserModel::find($userId) : Auth::guard('api')->user();
-        
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'user' => $this->getUserData($user),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'roles' => $user->getRoleNames()
-            ]
-        ]);
+        $result = $this->userAccessService->getAllUsers();
+        return $this->jsonResponse($result);
+    }
+    public function getUserPermissions($userId = null): JsonResponse
+    {
+        $result = $this->userAccessService->getUserPermissions($userId);
+        return $this->jsonResponse($result);
     }
 
-    public function givePermission(Request $request)
+    public function givePermission(Request $request): JsonResponse
     {
         $request->validate([
-            'user_id' => 'required|exists:model_has_roles,user_id',
+            'user_id' => 'required|exists:users,id',
             'permission' => 'required|exists:permissions,name'
         ]);
 
-        $user = UserModel::find($request->user_id);
-        $user->givePermissionTo($request->permission);
+        $result = $this->userAccessService->managePermission(
+            $request->user_id,
+            $request->permission,
+            'give'
+        );
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Permission granted successfully',
-            'data' => $this->getUserPermissions($user->user_id)->original
-        ]);
+        return $this->jsonResponse($result);
     }
 
-    public function revokePermission(Request $request)
+    public function revokePermission(Request $request): JsonResponse
     {
         $request->validate([
-            'user_id' => 'required|exists:user_models,user_id',
+            'user_id' => 'required|exists:users,id',
             'permission' => 'required|exists:permissions,name'
         ]);
 
-        $user = UserModel::find($request->user_id);
-        $user->revokePermissionTo($request->permission);
+        $result = $this->userAccessService->managePermission(
+            $request->user_id,
+            $request->permission,
+            'revoke'
+        );
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Permission revoked successfully',
-            'data' => $this->getUserPermissions($user->user_id)->original
-        ]);
+        return $this->jsonResponse($result);
     }
 
-    // ==================== ROLES MANAGEMENT ====================
-    public function assignRole(Request $request)
+    public function assignRole(Request $request): JsonResponse
     {
         $request->validate([
-            'user_id' => 'required|exists:user_models,user_id',
+            'user_id' => 'required|exists:users,id',
             'role' => 'required|exists:roles,name'
         ]);
 
-        $user = UserModel::find($request->user_id);
-        $user->assignRole($request->role);
+        $result = $this->userAccessService->manageRole(
+            $request->user_id,
+            $request->role,
+            'assign'
+        );
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Role assigned successfully',
-            'data' => $this->getUserPermissions($user->user_id)->original
-        ]);
+        return $this->jsonResponse($result);
     }
 
-    public function removeRole(Request $request)
+    public function removeRole(Request $request): JsonResponse
     {
         $request->validate([
-            'user_id' => 'required|exists:user_models,user_id',
+            'user_id' => 'required|exists:users,id',
             'role' => 'required|exists:roles,name'
         ]);
 
-        $user = UserModel::find($request->user_id);
-        $user->removeRole($request->role);
+        $result = $this->userAccessService->manageRole(
+            $request->user_id,
+            $request->role,
+            'remove'
+        );
 
-        return response()->json([
-            'status' => true,
-            'message' => 'Role removed successfully',
-            'data' => $this->getUserPermissions($user->user_id)->original
-        ]);
+        return $this->jsonResponse($result);
     }
 
-    // ==================== ROUTE ACCESS ====================
-    public function getAccessibleRoutes($userId = null)
+    public function getAccessibleRoutes($userId = null): JsonResponse
     {
-        $user = $userId ? UserModel::find($userId) : Auth::guard('api')->user();
-        
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-
-        $accessibleRoutes = $this->checkRouteAccess($user);
-
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'user' => $this->getUserData($user),
-                'accessible_routes' => $accessibleRoutes
-            ]
-        ]);
+        $result = $this->userAccessService->getAccessibleRoutes($userId);
+        return $this->jsonResponse($result);
     }
 
-    public function getFullAccessInfo($userId = null)
+    public function getFullAccessInfo($userId = null): JsonResponse
     {
-        $user = $userId ? UserModel::find($userId) : Auth::guard('api')->user();
-        
-        if (!$user) {
-            return response()->json([
-                'status' => false,
-                'message' => 'User not found'
-            ], 404);
-        }
-
-        $accessibleRoutes = $this->checkRouteAccess($user);
-
-        return response()->json([
-            'status' => true,
-            'data' => [
-                'user' => $this->getUserData($user),
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'accessible_routes' => $accessibleRoutes,
-                'all_permissions' => Permission::all()->pluck('name'),
-                'all_roles' => Role::all()->pluck('name')
-            ]
-        ]);
+        $result = $this->userAccessService->getFullAccessInfo($userId);
+        return $this->jsonResponse($result);
     }
 
-    // ==================== HELPER METHODS ====================
-    protected function checkRouteAccess($user)
+    protected function jsonResponse(array $result): JsonResponse
     {
-        $accessibleRoutes = [];
-        $allRoutes = Route::getRoutes();
-
-        foreach ($allRoutes as $route) {
-            $middleware = $route->gatherMiddleware();
-            
-            foreach ($middleware as $m) {
-                if ($this->checkPermissionInMiddleware($m, $user)) {
-                    $accessibleRoutes[] = [
-                        'method' => implode('|', $route->methods()),
-                        'uri' => $route->uri(),
-                        'name' => $route->getName(),
-                        'action' => $route->getActionName()
-                    ];
-                    break;
-                }
-            }
-        }
-
-        return $accessibleRoutes;
-    }
-
-    protected function checkPermissionInMiddleware($middleware, $user)
-    {
-        if (is_array($middleware)) {
-            foreach ($middleware as $m) {
-                if ($this->checkPermissionInMiddleware($m, $user)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        $patterns = [
-            '/^permission:(.*)$/',
-            '/^can:(.*)$/',
-            '/^.*\\\PermissionMiddleware:(.*)$/'
-        ];
-        
-        foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $middleware, $matches)) {
-                return $user->can(trim($matches[1]));
-            }
-        }
-
-        return false;
-    }
-
-    protected function getUserData($user)
-    {
-        return [
-            'id' => $user->user_id,
-            'name' => $user->user_nama,
-            'email' => $user->user_email,
-            'has_permissions' => $user->permissions->isNotEmpty(),
-            'has_roles' => $user->roles->isNotEmpty()
-        ];
+        $status = $result['success'] ? 200 : ($result['status'] ?? 400);
+        return response()->json($result, $status);
     }
 }

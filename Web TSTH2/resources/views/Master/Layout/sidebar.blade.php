@@ -130,13 +130,13 @@
                 @endif
 
                 <!-- System Management -->
-                @if(hasPermission('role.view') || hasPermission('permission.view'))
+                @if(hasPermission('access-control.users.view') || hasPermission('access-control.manage'))
                 <li class="nav-item-header pt-0">
                     <div class="text-uppercase fs-sm lh-sm opacity-50 sidebar-resize-hide">System</div>
                     <i class="ph-dots-three sidebar-resize-show"></i>
                 </li>
 
-                @if(hasPermission('role.view') || hasPermission('permission.view'))
+                @if(hasPermission('access-control.manage'))
                 <li class="nav-item">
                     <a href="{{ url('/role-permission') }}"
                         class="nav-link {{ Request::is('role-permission') ? 'active' : '' }}">
@@ -146,7 +146,7 @@
                 </li>
                 @endif
 
-                @if(hasPermission('user.view'))
+                @if(hasPermission('access-control.users.view'))
                 <li class="nav-item">
                     <a href="{{ url('/user-access') }}"
                         class="nav-link {{ Request::is('user-access') ? 'active' : '' }}">

@@ -138,6 +138,16 @@ class SatuanService
                 ];
             }
 
+            // Jika satuan sudah di-soft delete sebelumnya
+            if ($satuan->trashed()) {
+                DB::rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'Satuan sudah dihapus sebelumnya',
+                    'error' => 'ALREADY_DELETED'
+                ];
+            }
+
             // Check if satuan is used in other records
             if ($this->satuanRepository->isUsedInBarang($satuan)) {
                 DB::rollBack();
