@@ -1,11 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Profile Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const ProfilePage(),
+    );
+  }
+}
+
+class User {
+  final String id;
+  final String fullName;
+  final String username;
+  final String email;
+  final String? photo;
+  final String phone;
+  final String address;
+  final String position;
+  final String joinDate;
+
+  User({
+    required this.id,
+    required this.fullName,
+    required this.username,
+    required this.email,
+    this.photo,
+    required this.phone,
+    required this.address,
+    required this.position,
+    required this.joinDate,
+  });
+
+  static User get currentUser => User(
+        id: '1',
+        fullName: 'Alex Johnson',
+        username: 'alexj',
+        email: 'alex.johnson@example.com',
+        photo: null,
+        phone: '+1 (555) 123-4567',
+        address: '123 Main St, New York, USA',
+        position: 'Inventory Manager',
+        joinDate: 'March 15, 2022',
+      );
+}
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = User.currentUser;
+    
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: CustomScrollView(
@@ -91,7 +149,18 @@ class ProfilePage extends StatelessWidget {
                               ),
                             ),
                             const Spacer(),
-                            const SizedBox(width: 48), // For balance
+                            IconButton(
+                              icon: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.edit,
+                                    color: Colors.white, size: 20),
+                              ),
+                              onPressed: () => _navigateToEditProfile(context),
+                            ),
                           ],
                         ),
                       ),
@@ -124,32 +193,34 @@ class ProfilePage extends StatelessWidget {
                                     ],
                                   ),
                                   child: ClipOval(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.blue.shade900,
-                                            Colors.blue.shade700
-                                          ],
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          'AJ',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 36,
-                                            fontWeight: FontWeight.bold,
+                                    child: user.photo != null
+                                        ? Image.asset(user.photo!, fit: BoxFit.cover)
+                                        : Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.blue.shade900,
+                                                  Colors.blue.shade700
+                                                ],
+                                              ),
+                                            ),
+                                            child: Center(
+                                              child: Text(
+                                                _getInitials(user.fullName),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 36,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Alex Johnson',
+                                user.fullName,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 24,
@@ -165,7 +236,7 @@ class ProfilePage extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'alex.johnson@example.com',
+                                user.email,
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.9),
                                   fontSize: 16,
@@ -194,22 +265,22 @@ class ProfilePage extends StatelessWidget {
                       _InfoItem(
                         icon: Icons.phone_rounded,
                         title: 'Phone',
-                        value: '+1 (555) 123-4567',
+                        value: user.phone,
                       ),
                       _InfoItem(
                         icon: Icons.location_on_rounded,
                         title: 'Address',
-                        value: '123 Main St, New York, USA',
+                        value: user.address,
                       ),
                       _InfoItem(
                         icon: Icons.work_rounded,
                         title: 'Position',
-                        value: 'Inventory Manager',
+                        value: user.position,
                       ),
                       _InfoItem(
                         icon: Icons.calendar_month_rounded,
                         title: 'Join Date',
-                        value: 'March 15, 2022',
+                        value: user.joinDate,
                       ),
                     ],
                   ),
@@ -225,7 +296,7 @@ class ProfilePage extends StatelessWidget {
                         icon: Icons.lock_outline_rounded,
                         title: 'Change Password',
                         isAction: true,
-                        onTap: () => _showComingSoon(context),
+                        onTap: () => _showUpdatePasswordDialog(context),
                       ),
                       _InfoItem(
                         icon: Icons.notifications_outlined,
@@ -286,6 +357,25 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  String _getInitials(String fullName) {
+    final names = fullName.split(' ');
+    if (names.length >= 2) {
+      return '${names[0][0]}${names[1][0]}';
+    } else if (names.isNotEmpty) {
+      return names[0][0];
+    }
+    return '';
+  }
+
+  void _navigateToEditProfile(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditProfilePage(user: User.currentUser),
       ),
     );
   }
@@ -492,6 +582,220 @@ class ProfilePage extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showUpdatePasswordDialog(BuildContext context) {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Change Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: oldPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Current Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: newPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: confirmPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm New Password',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (newPasswordController.text.isNotEmpty && 
+                    newPasswordController.text == confirmPasswordController.text) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Password updated successfully')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please check your passwords')),
+                  );
+                }
+              },
+              child: const Text('Update'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class EditProfilePage extends StatefulWidget {
+  final User user;
+
+  const EditProfilePage({super.key, required this.user});
+
+  @override
+  State<EditProfilePage> createState() => _EditProfilePageState();
+}
+
+class _EditProfilePageState extends State<EditProfilePage> {
+  late TextEditingController _fullNameController;
+  late TextEditingController _usernameController;
+  late TextEditingController _emailController;
+  late TextEditingController _phoneController;
+  late TextEditingController _addressController;
+  String? _profileImagePath;
+
+  @override
+  void initState() {
+    super.initState();
+    _fullNameController = TextEditingController(text: widget.user.fullName);
+    _usernameController = TextEditingController(text: widget.user.username);
+    _emailController = TextEditingController(text: widget.user.email);
+    _phoneController = TextEditingController(text: widget.user.phone);
+    _addressController = TextEditingController(text: widget.user.address);
+    _profileImagePath = widget.user.photo;
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
+
+  void _saveProfile() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully')),
+    );
+    Navigator.pop(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _saveProfile,
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _profileImagePath = 'assets/demo_profile.jpg';
+                });
+              },
+              child: CircleAvatar(
+                radius: 60,
+                backgroundColor: Colors.grey.shade200,
+                backgroundImage: _profileImagePath != null
+                    ? AssetImage(_profileImagePath!)
+                    : null,
+                child: _profileImagePath == null
+                    ? const Icon(Icons.person, size: 60, color: Colors.grey)
+                    : null,
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _fullNameController,
+              decoration: const InputDecoration(
+                labelText: 'Full Name',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.account_circle),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(
+                labelText: 'Phone',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.phone),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _addressController,
+              decoration: const InputDecoration(
+                labelText: 'Address',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_on),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _saveProfile,
+                child: const Text('Save Changes'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
